@@ -3,6 +3,7 @@ package com.calcul.server
 import sttp.shared.Identity
 import sttp.tapir.server.ServerEndpoint
 import sttp.tapir.server.netty.sync.NettySyncServer
+import sttp.tapir.stringToPath
 import com.calcul.ai.GeminiService
 import com.calcul.api.Endpoints
 import com.calcul.auth.{AuthConfig, AuthService}
@@ -92,7 +93,45 @@ class ServerRoutes(
       weightService.getWeights(defaultUserId, fromDate, toDate)
     }
 
+  val indexRoute: ServerEndpoint[Any, Identity] =
+    sttp.tapir.endpoint.get
+      .in(sttp.tapir.stringToPath(""))
+      .out(sttp.tapir.htmlBodyUtf8)
+      .summary("Serve Single Page Application index.html")
+      .serverLogicSuccess[Identity] { _ =>
+        val is = getClass.getClassLoader.getResourceAsStream("webapp/index.html")
+        if is != null then
+          try new String(is.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8)
+          finally is.close()
+        else "<!DOCTYPE html><html><body><div id='app'>CalTrack AI</div></body></html>"
+      }
+
+  val assetsRoute: ServerEndpoint[Any, Identity] =
+    sttp.tapir.endpoint.get
+      .in("assets" / sttp.tapir.paths)
+      .out(sttp.tapir.byteArrayBody)
+      .out(sttp.tapir.header[String]("Content-Type"))
+      .summary("Serve static web assets")
+      .serverLogicSuccess[Identity] { pathList =>
+        val relativePath = pathList.mkString("/")
+        val resourcePath = s"webapp/assets/$relativePath"
+        val is           = getClass.getClassLoader.getResourceAsStream(resourcePath)
+        if is != null then
+          try
+            val bytes = is.readAllBytes()
+            val contentType =
+              if relativePath.endsWith(".js") then "application/javascript"
+              else if relativePath.endsWith(".css") then "text/css"
+              else if relativePath.endsWith(".html") then "text/html"
+              else if relativePath.endsWith(".json") then "application/json"
+              else "application/octet-stream"
+            (bytes, contentType)
+          finally is.close()
+        else (Array.emptyByteArray, "application/octet-stream")
+      }
+
   val allRoutes: List[ServerEndpoint[Any, Identity]] = List(
+    assetsRoute,
     loginRoute,
     callbackRoute,
     meRoute,
@@ -104,7 +143,8 @@ class ServerRoutes(
     getDailyCaloriesRoute,
     setDailyTargetRoute,
     recordWeightRoute,
-    getWeightsRoute
+    getWeightsRoute,
+    indexRoute
   )
 
   def createServer(host: String = "0.0.0.0", port: Int = 8080): NettySyncServer =

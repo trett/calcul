@@ -46,9 +46,20 @@ lazy val shared = crossProject(JSPlatform, JVMPlatform)
   )
 
 lazy val backend = (project in file("backend"))
+  .enablePlugins(GraalVMNativeImagePlugin, JavaAppPackaging)
   .dependsOn(shared.jvm)
   .settings(
     name := "calcul-backend",
+    Compile / mainClass := Some("com.calcul.Main"),
+    graalVMNativeImageOptions ++= Seq(
+      "--no-fallback",
+      "-H:+ReportExceptionStackTraces",
+      "--enable-http",
+      "--enable-https",
+      "--install-exit-handlers",
+      "-H:IncludeResources=.*schema\\.sql$",
+      "-H:IncludeResources=.*webapp/.*"
+    ),
     libraryDependencies ++= Seq(
       "com.softwaremill.ox" %% "core" % oxVersion,
       "com.softwaremill.sttp.tapir" %% "tapir-netty-server-sync" % tapirVersion,
