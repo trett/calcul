@@ -1,0 +1,6 @@
+Task: Gemini Flash Client via sttp-ai
+Summary: Implemented GeminiService for multimodal meal calorie estimation and robust JSON response extraction supporting raw JSON and markdown code blocks.
+Files:
+- backend/src/main/scala/com/calcul/ai/GeminiService.scala: Gemini client logic, json extractor, and fallback estimation
+- backend/src/test/scala/com/calcul/ai/GeminiServiceSuite.scala: Unit tests for raw JSON and markdown-wrapped JSON extraction
+Why: Provides the core AI nutritional intelligence for analyzing meal descriptions and photos into structured calories and breakdowns.
