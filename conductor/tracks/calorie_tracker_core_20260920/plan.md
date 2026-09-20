@@ -12,7 +12,7 @@
     - [x] Implement `schema.sql` and direct JDBC connection pool configuration
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Project Scaffolding & Multi-Module Build Setup' (Protocol in workflow.md)
 
-## Phase 2: Domain Modeling, Shared Endpoints & Direct-Style Backend
+## Phase 2: Domain Modeling, Shared Endpoints & Direct-Style Backend (Checkpoint: 9853af1)
 - [x] Task: Shared Domain Models & JSON Codecs (c5feb5c)
     - [x] Write unit tests for domain case classes and reflection-free compile-time macro JSON serialization
     - [x] Implement shared domain models, DTOs, and compile-time codecs in `shared` module
