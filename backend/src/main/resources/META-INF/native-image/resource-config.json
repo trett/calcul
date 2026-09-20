@@ -1,9 +1,7 @@
 {
   "resources":{
   "includes":[{
-    "pattern":"\\QMETA-INF/native/libnetty_transport_native_kqueue_aarch_64.dylib\\E"
-  }, {
-    "pattern":"\\QMETA-INF/native/libnetty_transport_native_kqueue_aarch_64.jnilib\\E"
+    "pattern":".*META-INF/native/.*"
   }, {
     "pattern":"\\QMETA-INF/services/java.lang.System$LoggerFinder\\E"
   }, {
