@@ -16,9 +16,9 @@
 - [x] Task: Shared Domain Models & JSON Codecs (c5feb5c)
     - [x] Write unit tests for domain case classes and reflection-free compile-time macro JSON serialization
     - [x] Implement shared domain models, DTOs, and compile-time codecs in `shared` module
-- [ ] Task: Shared Tapir API Endpoint Declarations
-    - [ ] Write unit tests verifying Tapir endpoint definitions and schema generation
-    - [ ] Implement Tapir endpoint declarations in `shared` module for Auth, Meals, AI Analysis, Calories, and Weight
+- [x] Task: Shared Tapir API Endpoint Declarations (151fbde)
+    - [x] Write unit tests verifying Tapir endpoint definitions and schema generation
+    - [x] Implement Tapir endpoint declarations in `shared` module for Auth, Meals, AI Analysis, Calories, and Weight
 - [ ] Task: Direct-Style Netty Server & Database Repositories
     - [ ] Write repository unit and integration tests for users, meals, calorie targets, and daily weights
     - [ ] Implement direct-style JDBC repositories and Netty/Ox HTTP server routes in `backend` module
