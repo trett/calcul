@@ -33,7 +33,7 @@
     - [x] Implement backend endpoint logic for multimodal image upload, description analysis, and meal persistence
 - [x] Task: Conductor - User Manual Verification 'Phase 3: AI Service (sttp-ai + Gemini Flash) & Multimodal Meal Ingestion' (Protocol in workflow.md)
 
-## Phase 4: Calorie Target, Weight Tracking & Daily Aggregations
+## Phase 4: Calorie Target, Weight Tracking & Daily Aggregations (Checkpoint: d78f77f)
 - [x] Task: Daily Calorie Budget & Aggregation Service (415de93)
     - [x] Write unit tests for daily calorie summation, budget calculation, and historical date queries
     - [x] Implement backend service and endpoint handlers for `GET /api/calories/daily` and `PUT /api/calories/target`
