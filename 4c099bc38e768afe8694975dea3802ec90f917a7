@@ -1,0 +1,1 @@
+Phase 7, Task 2: Containerization & Local Dev Orchestration - Added /api/health endpoint, multi-stage Dockerfile with sbt fastLinkJS and stage packaging, and docker-compose.yml with PostgreSQL 16 schema mounting and healthcheck dependencies
