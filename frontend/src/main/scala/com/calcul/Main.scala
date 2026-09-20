@@ -18,10 +18,7 @@ object Main:
             case "dashboard" =>
               DashboardView()
             case "weights" =>
-              div(
-                cls       := "tab-content-weights",
-                styleAttr := "display: flex; flex-direction: column; gap: 1.5rem;"
-              )
+              WeightView()
             case other =>
               div(p(s"Unknown view: $other"))
           }
