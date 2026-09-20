@@ -51,8 +51,8 @@
 ## Phase 6: Scala.js Frontend with Laminar & Shoelace Components
 - [x] Task: Frontend Application Shell & Shoelace Theme Integration (aba45b0)
     - [x] Implement Laminar root component, router, and `laminar-shoelace-components` setup
-- [ ] Task: Meal Ingestion & AI Review UI Component
-    - [ ] Implement photo upload / text description inputs, loading indicator, and editable calorie confirmation modal
+- [x] Task: Meal Ingestion & AI Review UI Component (15cdf76)
+    - [x] Implement photo upload / text description inputs, loading indicator, and editable calorie confirmation modal
 - [ ] Task: Daily Dashboard, Timeline Feed & Calendar View
     - [ ] Implement daily calorie dial/progress component, chronological meal timeline, and date picker
 - [ ] Task: Daily Weight Logging Component
