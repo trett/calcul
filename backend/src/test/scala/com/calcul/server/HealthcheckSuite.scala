@@ -7,7 +7,7 @@ import java.net.http.{HttpClient, HttpRequest, HttpResponse}
 import java.nio.file.Files
 import java.sql.{Connection, DriverManager}
 import ox.*
-import com.calcul.db.DatabaseInit
+import com.calcul.db.TestDbInit
 
 class HealthcheckSuite extends FunSuite:
 
@@ -15,7 +15,7 @@ class HealthcheckSuite extends FunSuite:
     val jdbcUrl          = "jdbc:h2:mem:healthcheck_test;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1"
     val conn: Connection = DriverManager.getConnection(jdbcUrl, "sa", "")
     try
-      DatabaseInit.initSchema(conn)
+      TestDbInit.initSchema(conn)
       val routes = new ServerRoutes(conn)
       val server = routes.createServer(port = 8897)
 

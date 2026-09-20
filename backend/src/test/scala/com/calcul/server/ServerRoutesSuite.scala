@@ -2,7 +2,7 @@ package com.calcul.server
 
 import munit.FunSuite
 import java.sql.{Connection, DriverManager}
-import com.calcul.db.DatabaseInit
+import com.calcul.db.TestDbInit
 
 class ServerRoutesSuite extends FunSuite:
 
@@ -10,7 +10,7 @@ class ServerRoutesSuite extends FunSuite:
     val jdbcUrl          = "jdbc:h2:mem:server_routes_test;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1"
     val conn: Connection = DriverManager.getConnection(jdbcUrl, "sa", "")
     try
-      DatabaseInit.initSchema(conn)
+      TestDbInit.initSchema(conn)
       val routes = new ServerRoutes(conn)
       assertEquals(routes.allRoutes.size, 15)
       val server = routes.createServer(port = 8089)

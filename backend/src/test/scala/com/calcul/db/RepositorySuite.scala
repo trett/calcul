@@ -18,7 +18,7 @@ class RepositorySuite extends FunSuite:
   override def beforeEach(context: BeforeEach): Unit =
     val jdbcUrl = s"jdbc:h2:mem:repo_test_${UUID.randomUUID()};MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1"
     conn = DriverManager.getConnection(jdbcUrl, "sa", "")
-    DatabaseInit.initSchema(conn)
+    TestDbInit.initSchema(conn)
     userRepo = new UserRepository(conn)
     targetRepo = new DailyTargetRepository(conn)
     mealRepo = new MealRepository(conn)

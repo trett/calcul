@@ -3,7 +3,7 @@ package com.calcul.auth
 import munit.FunSuite
 import java.sql.{Connection, DriverManager}
 import java.util.UUID
-import com.calcul.db.{DatabaseInit, UserRepository}
+import com.calcul.db.{TestDbInit, UserRepository}
 
 class AuthServiceSuite extends FunSuite:
 
@@ -11,7 +11,7 @@ class AuthServiceSuite extends FunSuite:
     val jdbcUrl = s"jdbc:h2:mem:auth_test_${UUID.randomUUID()};MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1"
     val conn: Connection = DriverManager.getConnection(jdbcUrl, "sa", "")
     try
-      DatabaseInit.initSchema(conn)
+      TestDbInit.initSchema(conn)
       val userRepo = new UserRepository(conn)
       val config = AuthConfig(
         clientId = "google-client-id-123.apps.googleusercontent.com",

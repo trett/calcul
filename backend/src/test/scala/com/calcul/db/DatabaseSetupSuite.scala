@@ -5,11 +5,11 @@ import java.sql.DriverManager
 
 class DatabaseSetupSuite extends FunSuite:
 
-  test("DatabaseInit executes schema.sql and creates all tables") {
+  test("TestDbInit executes schema.sql and creates all tables") {
     val jdbcUrl = "jdbc:h2:mem:test_db;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1"
     val conn    = DriverManager.getConnection(jdbcUrl, "sa", "")
     try
-      val tablesCreated = DatabaseInit.initSchema(conn)
+      val tablesCreated = TestDbInit.initSchema(conn)
       assert(tablesCreated.contains("users"), "users table should be created")
       assert(tablesCreated.contains("daily_targets"), "daily_targets table should be created")
       assert(tablesCreated.contains("meals"), "meals table should be created")

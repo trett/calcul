@@ -5,7 +5,7 @@ import java.net.URI
 import java.net.http.{HttpClient, HttpRequest, HttpResponse}
 import java.sql.{Connection, DriverManager}
 import ox.*
-import com.calcul.db.DatabaseInit
+import com.calcul.db.TestDbInit
 
 class StaticAssetServingSuite extends FunSuite:
 
@@ -13,7 +13,7 @@ class StaticAssetServingSuite extends FunSuite:
     val jdbcUrl          = "jdbc:h2:mem:static_asset_test;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1"
     val conn: Connection = DriverManager.getConnection(jdbcUrl, "sa", "")
     try
-      DatabaseInit.initSchema(conn)
+      TestDbInit.initSchema(conn)
       val routes = new ServerRoutes(conn)
       val server = routes.createServer(port = 8899)
 
@@ -39,7 +39,7 @@ class StaticAssetServingSuite extends FunSuite:
     val jdbcUrl          = "jdbc:h2:mem:static_asset_test_2;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1"
     val conn: Connection = DriverManager.getConnection(jdbcUrl, "sa", "")
     try
-      DatabaseInit.initSchema(conn)
+      TestDbInit.initSchema(conn)
       val routes = new ServerRoutes(conn)
       val server = routes.createServer(port = 8898)
 

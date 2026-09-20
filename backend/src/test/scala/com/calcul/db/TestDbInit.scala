@@ -5,7 +5,7 @@ import java.sql.Connection
 import scala.io.Source
 import scala.util.Using
 
-object DatabaseInit:
+object TestDbInit:
 
   def initSchema(conn: Connection): Set[String] =
     val schemaResource: InputStream =
