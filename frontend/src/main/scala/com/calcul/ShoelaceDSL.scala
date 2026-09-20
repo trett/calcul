@@ -41,3 +41,4 @@ object ShoelaceDSL:
   val slPill: HtmlAttr[Boolean]       = new HtmlAttr[Boolean]("pill", BooleanAsAttrPresenceCodec)
   val slOutline: HtmlAttr[Boolean]    = new HtmlAttr[Boolean]("outline", BooleanAsAttrPresenceCodec)
   val slValue: HtmlAttr[String]       = new HtmlAttr[String]("value", StringAsIsCodec)
+  val slType: HtmlAttr[String]        = new HtmlAttr[String]("type", StringAsIsCodec)
