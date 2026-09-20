@@ -4,6 +4,17 @@ ThisBuild / scalaVersion := scala3Version
 ThisBuild / organization := "com.calcul"
 ThisBuild / version := "0.1.0-SNAPSHOT"
 
+ThisBuild / scalacOptions ++= Seq(
+  "-deprecation",
+  "-feature",
+  "-unchecked",
+  "-Werror",
+  "-Wunused:all"
+)
+
+ThisBuild / semanticdbEnabled := true
+ThisBuild / semanticdbVersion := scalafixSemanticdb.revision
+
 val oxVersion = "1.0.7"
 val tapirVersion = "1.13.31"
 val sttpAiVersion = "0.11.0"
