@@ -1,0 +1,9 @@
+Task: PostgreSQL Schema Script & Database Connectivity
+Summary: Implemented reflection-free PostgreSQL database initialization script (schema.sql), HikariCP configuration, and DatabaseInit executor with unit tests.
+Files:
+- schema.sql: Canonical DDL script creating users, daily_targets, meals, meal_items, daily_weights tables and indexes
+- backend/src/main/resources/schema.sql: Packaged schema script for backend runtime initialization
+- backend/src/main/scala/com/calcul/db/DatabaseConfig.scala: Direct HikariCP data source configuration
+- backend/src/main/scala/com/calcul/db/DatabaseInit.scala: Zero-reflection DDL script runner and table validator
+- backend/src/test/scala/com/calcul/db/DatabaseSetupSuite.scala: MUnit test verifying DDL execution and connection pooling
+Why: Provides the persistent relational storage layer without heavy reflection or migration frameworks, strictly optimized for GraalVM Native Image.
