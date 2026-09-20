@@ -1,0 +1,8 @@
+Task: Shared Domain Models & JSON Codecs
+Summary: Implemented core domain models and DTOs with reflection-free compile-time derived uPickle codecs, validated on both JVM and Scala.js.
+Files:
+- shared/src/main/scala/com/calcul/model/Codecs.scala: ReadWriters for temporal types (Instant, LocalDate)
+- shared/src/main/scala/com/calcul/model/DomainModels.scala: Domain case classes (User, DailyTarget, Meal, MealItem, DailyWeight, MealAnalysisResponse, etc.)
+- shared/src/test/scala/com/calcul/model/DomainModelsSuite.scala: Unit tests for round-trip JSON serialization
+- project/plugins.sbt: Updated sbt-scalajs to 1.22.0 matching Scala 3.9.0 IR
+Why: Provides cross-platform domain representations shared between backend and frontend without runtime reflection, adhering to GraalVM Native Image constraints.
