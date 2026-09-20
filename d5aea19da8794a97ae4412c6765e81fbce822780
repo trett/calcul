@@ -1,0 +1,6 @@
+Task Summary: Daily Dashboard, Timeline Feed & Calendar View
+- Implemented DashboardView featuring real-time calorie budget summary (consumed, target, remaining).
+- Implemented Shoelace progress bar dynamically reacting to calorie consumption vs target.
+- Added daily target modification modal linked to ApiClient.setDailyTarget.
+- Embedded MealIngestionView for streamlined AI meal logging directly from the dashboard.
+- Implemented chronological meal timeline feed rendering detailed meal breakdown cards, AI reasoning callout, and meal deletion.
