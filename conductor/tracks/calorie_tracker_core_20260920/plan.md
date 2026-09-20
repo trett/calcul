@@ -22,7 +22,7 @@
 - [x] Task: Direct-Style Netty Server & Database Repositories (0a15e92)
     - [x] Write repository unit and integration tests for users, meals, calorie targets, and daily weights
     - [x] Implement direct-style JDBC repositories and Netty/Ox HTTP server routes in `backend` module
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Domain Modeling, Shared Endpoints & Direct-Style Backend' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Domain Modeling, Shared Endpoints & Direct-Style Backend' (Protocol in workflow.md)
 
 ## Phase 3: AI Service (sttp-ai + Gemini Flash) & Multimodal Meal Ingestion
 - [ ] Task: Gemini Flash Client via sttp-ai
