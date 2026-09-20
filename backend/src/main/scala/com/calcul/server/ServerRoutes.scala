@@ -17,6 +17,7 @@ class ServerRoutes(conn: Connection, gemini: GeminiService = new GeminiService(N
   val weightRepo: DailyWeightRepository = new DailyWeightRepository(conn)
   val mealService: MealService          = new MealService(conn, gemini)
   val calorieService: CalorieService    = new CalorieService(conn)
+  val weightService: WeightService      = new WeightService(conn)
 
   val defaultUserId: UUID = UUID.fromString("00000000-0000-0000-0000-000000000001")
 
@@ -60,6 +61,18 @@ class ServerRoutes(conn: Connection, gemini: GeminiService = new GeminiService(N
       calorieService.setTarget(defaultUserId, req)
     }
 
+  val recordWeightRoute: ServerEndpoint[Any, Identity] =
+    Endpoints.recordWeightEndpoint.serverLogicSuccess[Identity] { req =>
+      weightService.recordWeight(defaultUserId, req)
+    }
+
+  val getWeightsRoute: ServerEndpoint[Any, Identity] =
+    Endpoints.getWeightsEndpoint.serverLogicSuccess[Identity] { case (fromStr, toStr) =>
+      val fromDate = LocalDate.parse(fromStr)
+      val toDate   = LocalDate.parse(toStr)
+      weightService.getWeights(defaultUserId, fromDate, toDate)
+    }
+
   val allRoutes: List[ServerEndpoint[Any, Identity]] = List(
     loginRoute,
     logoutRoute,
@@ -68,7 +81,9 @@ class ServerRoutes(conn: Connection, gemini: GeminiService = new GeminiService(N
     listMealsRoute,
     deleteMealRoute,
     getDailyCaloriesRoute,
-    setDailyTargetRoute
+    setDailyTargetRoute,
+    recordWeightRoute,
+    getWeightsRoute
   )
 
   def createServer(host: String = "0.0.0.0", port: Int = 8080): NettySyncServer =

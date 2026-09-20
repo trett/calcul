@@ -12,7 +12,7 @@ class ServerRoutesSuite extends FunSuite:
     try
       DatabaseInit.initSchema(conn)
       val routes = new ServerRoutes(conn)
-      assertEquals(routes.allRoutes.size, 8)
+      assertEquals(routes.allRoutes.size, 10)
       val server = routes.createServer(port = 8089)
       assert(server != null, "Server should be initialized")
     finally conn.close()
