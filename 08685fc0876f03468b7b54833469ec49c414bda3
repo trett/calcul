@@ -1,0 +1,8 @@
+Task: Code Quality & Tooling Setup
+Summary: Configured strict Scalafmt, Scalafix, and Scala 3 compiler flags for the codebase.
+Files:
+- .scalafmt.conf: defined strict formatting rules for Scala 3
+- .scalafix.conf: defined strict linting rules (no vars, no nulls, no returns)
+- build.sbt: enabled -Werror, -Wunused:all, -deprecation, -feature, semanticdb
+- scripts/test_code_quality_setup.sh: test script to enforce format and lint checks
+Why: Ensures rigorous code standards and consistent style across all modules as specified in the project requirements.
