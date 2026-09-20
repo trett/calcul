@@ -1,0 +1,6 @@
+Task Summary: Static Asset Serving & GraalVM Native Image Setup
+- Implemented static asset serving in ServerRoutes: GET / serves index.html and GET /assets/* serves web resources with correct MIME types.
+- Created backend Main entry point initializing DatabaseConfig, schema, GeminiService, AuthConfig, and starting NettySyncServer on virtual threads.
+- Added Single Page Application index.html and embedded Scala.js web bundle.
+- Configured sbt-native-packager GraalVMNativeImagePlugin with reflection-free settings and resource patterns in build.sbt.
+- Verified static route serving with StaticAssetServingSuite.
