@@ -40,7 +40,7 @@
 - [x] Task: Daily Weight Tracking Service (b9a20f1)
     - [x] Write unit tests for daily weigh-in recording and date-range history retrieval
     - [x] Implement backend service and endpoint handlers for `POST /api/weights` and `GET /api/weights`
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Calorie Target, Weight Tracking & Daily Aggregations' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 4: Calorie Target, Weight Tracking & Daily Aggregations' (Protocol in workflow.md)
 
 ## Phase 5: Google OAuth2 Authentication
 - [ ] Task: Google OAuth2 Flow & Session Management
