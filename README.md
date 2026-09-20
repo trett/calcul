@@ -80,22 +80,34 @@ SESSION_SECRET=your_random_32_character_session_signing_secret
 
 ---
 
-### 4. Build and Start the Application
+### 4. Apply Database Schema (Manual Deployment)
 
-Build the application image using sbt and start the stack:
+The backend does **not** execute DDL migrations at startup. This design avoids cold-start latency and migration locking, making the application fully compatible with **serverless** (e.g. Google Cloud Run, AWS Lambda) and multi-instance container environments.
+
+Apply [`schema.sql`](file:///Users/romantretiakov/gitplay/calcul/schema.sql) to your PostgreSQL database once prior to running the application:
+
+```bash
+# If using a managed PostgreSQL instance (Cloud SQL, Supabase, Neon, RDS):
+psql -h <db-host> -U <db-user> -d <db-name> -f schema.sql
+
+# Or if using local docker-compose for PostgreSQL:
+docker compose up -d postgres
+cat schema.sql | docker compose exec -T postgres psql -U calcul_user -d calcul
+```
+
+---
+
+### 5. Build and Start the Application
+
+Build the container image using sbt and start the stack:
 
 ```bash
 # Build the Docker image via sbt
 sbt buildImage
 
-# Start the application and database containers in detached mode
+# Start the application stack in detached mode
 docker compose up -d
 ```
-
-The application will:
-1. Start PostgreSQL and automatically initialize the database schema from `schema.sql`.
-2. Wait for PostgreSQL to become healthy.
-3. Launch the CalTrack application container.
 
 #### Verify the Deployment
 Check container status:
@@ -116,7 +128,7 @@ curl -f http://localhost:8080/api/health
 
 ---
 
-### 5. SSL & Domain Configuration (Reverse Proxy)
+### 6. SSL & Domain Configuration (Reverse Proxy)
 
 Do not expose the application port directly to the internet. Use a reverse proxy to terminate SSL.
 
@@ -180,7 +192,7 @@ sudo systemctl reload nginx
 
 ---
 
-### 6. Database Backups & Maintenance
+### 7. Database Backups & Maintenance
 
 #### Create a Backup
 ```bash
@@ -196,7 +208,7 @@ docker compose exec -T postgres pg_restore -U calcul_user -d calcul --clean --if
 
 ---
 
-### 7. Upgrades & Updates
+### 8. Upgrades & Updates
 
 To update to a new version:
 ```bash

@@ -3,7 +3,7 @@ package com.calcul
 import ox.*
 import com.calcul.ai.GeminiService
 import com.calcul.auth.AuthConfig
-import com.calcul.db.{DatabaseConfig, DatabaseInit}
+import com.calcul.db.DatabaseConfig
 import com.calcul.server.ServerRoutes
 
 object Main:
@@ -11,11 +11,6 @@ object Main:
   def main(args: Array[String]): Unit =
     val dbConfig   = DatabaseConfig.fromEnv()
     val dataSource = DatabaseConfig.createDataSource(dbConfig)
-
-    val conn = dataSource.getConnection
-    try
-      DatabaseInit.initSchema(conn)
-    finally conn.close()
 
     val geminiApiKey  = sys.env.get("GEMINI_API_KEY")
     val geminiService = new GeminiService(geminiApiKey)

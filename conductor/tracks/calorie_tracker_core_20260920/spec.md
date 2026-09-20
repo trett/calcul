@@ -17,7 +17,7 @@ The project is organized as an sbt multi-module build inspired by Bootzooka:
 - **`frontend`**: Scala.js with Laminar and Shoelace. Single page application providing the responsive user interface.
 
 ## 3. Data Model & Database Schema (`schema.sql`)
-Zero-reflection schema initialization via `schema.sql`:
+Zero-reflection database persistence via manual application of canonical `schema.sql`. The schema is applied manually by the operator/deployment pipeline rather than executed automatically at application startup, ensuring optimal cold starts and safety for serverless and multi-instance deployments:
 - **`users`**: `id` (UUID), `google_id` (VARCHAR UNIQUE), `email` (VARCHAR), `name` (VARCHAR), `picture_url` (VARCHAR), `created_at` (TIMESTAMPTZ).
 - **`daily_targets`**: `user_id` (UUID FK), `target_date` (DATE), `calorie_target` (INTEGER), PRIMARY KEY (`user_id`, `target_date`).
 - **`meals`**: `id` (UUID PRIMARY KEY), `user_id` (UUID FK), `logged_at` (TIMESTAMPTZ), `meal_date` (DATE), `description` (TEXT), `image_path` (VARCHAR nullable), `total_calories` (INTEGER), `ai_explanation` (TEXT).
@@ -62,7 +62,6 @@ Zero-reflection schema initialization via `schema.sql`:
 ## 7. GraalVM Native Image & Deployment
 - Strict reflection-free implementation (no Jackson, no Flyway).
 - Direct-style Ox / virtual threads compatible with GraalVM Native Image on Java 21+.
-- Multi-stage Dockerfile:
-  - Stage 1: Build Scala.js frontend and GraalVM native binary.
-  - Stage 2: Minimal distroless/alpine runtime containing the standalone native binary and static assets.
-- `docker-compose.yml` for local dev with PostgreSQL and automatic `schema.sql` mounting.
+- Zero DDL on startup: schema is pre-applied manually, making the service fully serverless and multi-instance safe.
+- Container packaging via `sbt-native-packager` `DockerPlugin` (`sbt buildImage` / `sbt "backend/Docker/stage"`).
+- `docker-compose.yml` for local dev with PostgreSQL and manual/automatic `schema.sql` mounting.
