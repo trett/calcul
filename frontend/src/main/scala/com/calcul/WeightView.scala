@@ -23,11 +23,15 @@ object WeightView:
           val w   = BigDecimal(raw)
           val req = RecordWeightRequest(weighDateVar.now(), w, unitVar.now())
           isSavingVar.set(true)
-          ApiClient.recordWeight(req).foreach { _ =>
-            isSavingVar.set(false)
-            weightInputVar.set("")
-            AppState.notify(s"Logged weight: $w ${unitVar.now()}", "success")
-            AppState.loadWeights()
+          ApiClient.recordWeight(req).onComplete {
+            case scala.util.Success(_) =>
+              isSavingVar.set(false)
+              weightInputVar.set("")
+              AppState.notify(s"Logged weight: $w ${unitVar.now()}", "success")
+              AppState.loadWeights()
+            case scala.util.Failure(err) =>
+              isSavingVar.set(false)
+              AppState.notify(s"Failed to save weight: ${err.getMessage}", "danger")
           }
         catch
           case _: Exception =>
@@ -62,9 +66,10 @@ object WeightView:
               styleAttr := "padding: 0.45rem 0.75rem; border: 1px solid var(--sl-color-neutral-300); border-radius: var(--sl-border-radius-medium); font-size: 0.95rem;",
               value <-- weighDateVar.signal.map(_.toString),
               onChange.mapToValue --> { v =>
-                if v != null && v.nonEmpty then
-                  try weighDateVar.set(LocalDate.parse(v))
+                Option(v).filter(_.nonEmpty).foreach { str =>
+                  try weighDateVar.set(LocalDate.parse(str))
                   catch case _: Exception => ()
+                }
               }
             )
           ),

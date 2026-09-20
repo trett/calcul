@@ -1,17 +1,15 @@
 package com.calcul.auth
 
 import munit.FunSuite
-import java.sql.{Connection, DriverManager}
 import java.util.UUID
-import com.calcul.db.{TestDbInit, UserRepository}
+import com.calcul.db.{TestPostgresContainer, UserRepository}
 
 class AuthServiceSuite extends FunSuite:
 
   test("AuthService generates valid Google OAuth URL and signs/verifies sessions") {
-    val jdbcUrl = s"jdbc:h2:mem:auth_test_${UUID.randomUUID()};MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1"
-    val conn: Connection = DriverManager.getConnection(jdbcUrl, "sa", "")
+    TestPostgresContainer.clearData()
+    val conn = TestPostgresContainer.newConnection()
     try
-      TestDbInit.initSchema(conn)
       val userRepo = new UserRepository(conn)
       val config = AuthConfig(
         clientId = "google-client-id-123.apps.googleusercontent.com",

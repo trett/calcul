@@ -3,17 +3,14 @@ package com.calcul.server
 import munit.FunSuite
 import java.net.URI
 import java.net.http.{HttpClient, HttpRequest, HttpResponse}
-import java.sql.{Connection, DriverManager}
 import ox.*
-import com.calcul.db.TestDbInit
+import com.calcul.db.TestPostgresContainer
 
 class StaticAssetServingSuite extends FunSuite:
 
   test("ServerRoutes serves index.html on root path GET /") {
-    val jdbcUrl          = "jdbc:h2:mem:static_asset_test;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1"
-    val conn: Connection = DriverManager.getConnection(jdbcUrl, "sa", "")
+    val conn = TestPostgresContainer.newConnection()
     try
-      TestDbInit.initSchema(conn)
       val routes = new ServerRoutes(conn)
       val server = routes.createServer(port = 8899)
 
@@ -36,10 +33,8 @@ class StaticAssetServingSuite extends FunSuite:
   }
 
   test("ServerRoutes serves assets on GET /assets/*") {
-    val jdbcUrl          = "jdbc:h2:mem:static_asset_test_2;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1"
-    val conn: Connection = DriverManager.getConnection(jdbcUrl, "sa", "")
+    val conn = TestPostgresContainer.newConnection()
     try
-      TestDbInit.initSchema(conn)
       val routes = new ServerRoutes(conn)
       val server = routes.createServer(port = 8898)
 

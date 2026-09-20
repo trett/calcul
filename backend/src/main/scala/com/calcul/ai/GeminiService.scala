@@ -1,21 +1,90 @@
 package com.calcul.ai
 
+import java.net.URI
+import java.net.http.{HttpClient, HttpRequest, HttpResponse}
+import java.nio.charset.StandardCharsets
 import scala.util.Try
 import com.calcul.model.{AnalyzedItem, MealAnalysisResponse}
 
 class GeminiService(apiKey: Option[String] = sys.env.get("GEMINI_API_KEY")):
 
-  def analyzeMeal(description: Option[String], base64Image: Option[String] = None): MealAnalysisResponse =
+  def analyzeMeal(
+      description: Option[String],
+      base64Image: Option[String] = None,
+      mimeType: Option[String] = None
+  ): MealAnalysisResponse =
     apiKey match
-      case Some(key) if key.nonEmpty =>
-        callGeminiApi(key, description.getOrElse("Meal photo analysis"), base64Image)
+      case Some(key) if key.trim.nonEmpty =>
+        Try(callGeminiApi(key.trim, description.getOrElse("Meal photo nutritional analysis"), base64Image, mimeType))
+          .getOrElse(fallbackEstimation(description.getOrElse("Meal")))
       case _ =>
         // Fallback estimation when API key is not configured (e.g. offline dev/testing)
         fallbackEstimation(description.getOrElse("Meal"))
 
-  private def callGeminiApi(key: String, prompt: String, base64Image: Option[String]): MealAnalysisResponse =
-    val _ = (key, base64Image)
-    fallbackEstimation(prompt)
+  private def callGeminiApi(
+      key: String,
+      prompt: String,
+      base64Image: Option[String],
+      mimeType: Option[String]
+  ): MealAnalysisResponse =
+    val parts = collection.mutable.ListBuffer[ujson.Obj]()
+
+    val systemInstruction =
+      """You are an expert clinical dietitian and nutritional estimation engine.
+        |Analyze the meal described and/or pictured. Identify each distinct food item and estimate its calories.
+        |Return ONLY a valid, raw JSON object matching this exact schema:
+        |{
+        |  "items": [
+        |    {"name": "Item name with portion", "calories": 150}
+        |  ],
+        |  "total_calories": 150,
+        |  "explanation": "Brief reasoning of how portion sizes and calories were determined."
+        |}
+        |""".stripMargin
+
+    parts += ujson.Obj("text" -> ujson.Str(s"$systemInstruction\nUser food description: $prompt"))
+
+    base64Image.foreach { rawB64 =>
+      val cleanB64 = if rawB64.contains(",") then rawB64.split(",", 2)(1) else rawB64
+      val mt       = mimeType.getOrElse("image/jpeg")
+      parts += ujson.Obj(
+        "inline_data" -> ujson.Obj(
+          "mime_type" -> ujson.Str(mt),
+          "data"      -> ujson.Str(cleanB64)
+        )
+      )
+    }
+
+    val requestJson = ujson
+      .Obj(
+        "contents" -> ujson.Arr(
+          ujson.Obj("parts" -> ujson.Arr.from(parts))
+        ),
+        "generationConfig" -> ujson.Obj(
+          "response_mime_type" -> ujson.Str("application/json")
+        )
+      )
+      .render()
+
+    val client = HttpClient.newHttpClient()
+    val uri = URI.create(
+      s"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=$key"
+    )
+    val request = HttpRequest
+      .newBuilder()
+      .uri(uri)
+      .header("Content-Type", "application/json")
+      .POST(HttpRequest.BodyPublishers.ofString(requestJson, StandardCharsets.UTF_8))
+      .build()
+
+    val response = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8))
+    if response.statusCode() == 200 then
+      val respJson    = ujson.read(response.body())
+      val textContent = respJson("candidates")(0)("content")("parts")(0)("text").str
+      GeminiService.parseGeminiResponse(textContent) match
+        case Right(res) => res
+        case Left(_)    => fallbackEstimation(prompt)
+    else fallbackEstimation(prompt)
 
   private def fallbackEstimation(description: String): MealAnalysisResponse =
     val words = description.toLowerCase

@@ -77,6 +77,12 @@ final case class AnalyzedItem(
     calories: Int
 ) derives ReadWriter
 
+final case class AnalyzeMealRequest(
+    description: Option[String] = None,
+    imageBase64: Option[String] = None,
+    mimeType: Option[String] = None
+) derives ReadWriter
+
 final case class MealAnalysisResponse(
     items: List[AnalyzedItem],
     totalCalories: Int,

@@ -1,13 +1,11 @@
 package com.calcul.db
 
 import munit.FunSuite
-import java.sql.DriverManager
 
 class DatabaseSetupSuite extends FunSuite:
 
   test("TestDbInit executes schema.sql and creates all tables") {
-    val jdbcUrl = "jdbc:h2:mem:test_db;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1"
-    val conn    = DriverManager.getConnection(jdbcUrl, "sa", "")
+    val conn = TestPostgresContainer.newConnection()
     try
       val tablesCreated = TestDbInit.initSchema(conn)
       assert(tablesCreated.contains("users"), "users table should be created")
@@ -20,9 +18,9 @@ class DatabaseSetupSuite extends FunSuite:
 
   test("DatabaseConfig creates a valid HikariDataSource configuration") {
     val config = DatabaseConfig(
-      jdbcUrl = "jdbc:h2:mem:config_test;MODE=PostgreSQL;DB_CLOSE_DELAY=-1",
-      username = "sa",
-      password = "",
+      jdbcUrl = TestPostgresContainer.jdbcUrl,
+      username = TestPostgresContainer.username,
+      password = TestPostgresContainer.password,
       maximumPoolSize = 5
     )
     val ds = DatabaseConfig.createDataSource(config)

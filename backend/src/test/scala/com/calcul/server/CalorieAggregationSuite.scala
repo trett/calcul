@@ -1,20 +1,17 @@
 package com.calcul.server
 
 import munit.FunSuite
-import java.sql.{Connection, DriverManager}
 import java.time.{Instant, LocalDate}
 import java.util.UUID
-import com.calcul.db.{MealRepository, TestDbInit, UserRepository}
+import com.calcul.db.{MealRepository, TestPostgresContainer, UserRepository}
 import com.calcul.model.*
 
 class CalorieAggregationSuite extends FunSuite:
 
   test("CalorieService computes daily calorie totals, target comparison and remaining balance") {
-    val jdbcUrl =
-      s"jdbc:h2:mem:calorie_agg_${UUID.randomUUID()};MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1"
-    val conn: Connection = DriverManager.getConnection(jdbcUrl, "sa", "")
+    TestPostgresContainer.clearData()
+    val conn = TestPostgresContainer.newConnection()
     try
-      TestDbInit.initSchema(conn)
       val userRepo       = new UserRepository(conn)
       val mealRepo       = new MealRepository(conn)
       val calorieService = new CalorieService(conn)
