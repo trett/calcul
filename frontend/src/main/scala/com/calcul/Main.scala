@@ -16,10 +16,7 @@ object Main:
         val content = div(
           child <-- AppState.activeTab.signal.map {
             case "dashboard" =>
-              div(
-                cls       := "tab-content-dashboard",
-                styleAttr := "display: flex; flex-direction: column; gap: 1.5rem;"
-              )
+              DashboardView()
             case "weights" =>
               div(
                 cls       := "tab-content-weights",
