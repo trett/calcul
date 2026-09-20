@@ -60,9 +60,9 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 6: Scala.js Frontend with Laminar & Shoelace Components' (Protocol in workflow.md)
 
 ## Phase 7: GraalVM Native Image Compilation & Docker Packaging
-- [ ] Task: Static Asset Serving & GraalVM Native Image Setup
-    - [ ] Write verification tests for embedded static asset serving and reflection-free native build configuration
-    - [ ] Implement backend static resource serving and `sbt-native-packager` GraalVM native image settings
+- [x] Task: Static Asset Serving & GraalVM Native Image Setup (1a06e2d)
+    - [x] Write verification tests for embedded static asset serving and reflection-free native build configuration
+    - [x] Implement backend static resource serving and `sbt-native-packager` GraalVM native image settings
 - [ ] Task: Containerization & Local Dev Orchestration
     - [ ] Write verification tests for Docker image build and healthcheck endpoints
     - [ ] Implement multi-stage Dockerfile and `docker-compose.yml` with PostgreSQL and `schema.sql` mounting
