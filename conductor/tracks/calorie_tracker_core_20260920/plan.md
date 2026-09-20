@@ -53,8 +53,8 @@
     - [x] Implement Laminar root component, router, and `laminar-shoelace-components` setup
 - [x] Task: Meal Ingestion & AI Review UI Component (15cdf76)
     - [x] Implement photo upload / text description inputs, loading indicator, and editable calorie confirmation modal
-- [ ] Task: Daily Dashboard, Timeline Feed & Calendar View
-    - [ ] Implement daily calorie dial/progress component, chronological meal timeline, and date picker
+- [x] Task: Daily Dashboard, Timeline Feed & Calendar View (d5aea19)
+    - [x] Implement daily calorie dial/progress component, chronological meal timeline, and date picker
 - [ ] Task: Daily Weight Logging Component
     - [ ] Implement weigh-in entry card and weight trend visualization
 - [ ] Task: Conductor - User Manual Verification 'Phase 6: Scala.js Frontend with Laminar & Shoelace Components' (Protocol in workflow.md)
