@@ -14,3 +14,6 @@ node_modules/
 
 # OS
 .DS_Store
+
+# Generated webapp assets
+backend/src/main/resources/webapp/assets/

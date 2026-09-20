@@ -62,6 +62,7 @@ lazy val backend = (project in file("backend"))
     name := "calcul-backend",
     Compile / mainClass := Some("com.calcul.Main"),
     Compile / resourceGenerators += generateFrontendAssets.taskValue,
+    Test / resourceGenerators += generateFrontendAssets.taskValue,
     // GraalVM Native Image Settings
     graalVMNativeImageOptions ++= Seq(
       "--no-fallback",
@@ -150,23 +151,42 @@ lazy val frontend = (project in file("frontend"))
     )
   )
 
-backend / generateFrontendAssets := {
-  val _              = (frontend / Compile / fastLinkJS).value
-  val crossTargetDir = (frontend / Compile / fastLinkJS / crossTarget).value
-  val jsFile         = crossTargetDir / "main.js"
-  val jsMapFile      = crossTargetDir / "main.js.map"
-  val targetDir      = (backend / Compile / resourceManaged).value / "webapp" / "assets"
-  IO.createDirectory(targetDir)
-  var copied = Seq.empty[File]
-  if (jsFile.exists()) {
-    val destJs = targetDir / "main.js"
-    IO.copyFile(jsFile, destJs)
-    copied = copied :+ destJs
+backend / generateFrontendAssets := Def.taskDyn {
+  val isProd = sys.env.get("PRODUCTION").contains("true") || sys.env.get("NATIVE_IMAGE").contains("true")
+  if (isProd) {
+    Def.task {
+      val _              = (frontend / Compile / fullLinkJS).value
+      val crossTargetDir = (frontend / Compile / fullLinkJS / crossTarget).value
+      val jsFile         = crossTargetDir / "calcul-frontend-opt" / "main.js"
+      val targetDir      = (backend / Compile / resourceManaged).value / "webapp" / "assets"
+      IO.createDirectory(targetDir)
+      if (jsFile.exists()) {
+        val destJs = targetDir / "main.js"
+        IO.copyFile(jsFile, destJs)
+        Seq(destJs)
+      } else Seq.empty[File]
+    }
+  } else {
+    Def.task {
+      val _              = (frontend / Compile / fastLinkJS).value
+      val crossTargetDir = (frontend / Compile / fastLinkJS / crossTarget).value
+      val jsDir          = crossTargetDir / "calcul-frontend-fastopt"
+      val jsFile         = jsDir / "main.js"
+      val jsMapFile      = jsDir / "main.js.map"
+      val targetDir      = (backend / Compile / resourceManaged).value / "webapp" / "assets"
+      IO.createDirectory(targetDir)
+      var copied = Seq.empty[File]
+      if (jsFile.exists()) {
+        val destJs = targetDir / "main.js"
+        IO.copyFile(jsFile, destJs)
+        copied = copied :+ destJs
+      }
+      if (jsMapFile.exists()) {
+        val destMap = targetDir / "main.js.map"
+        IO.copyFile(jsMapFile, destMap)
+        copied = copied :+ destMap
+      }
+      copied
+    }
   }
-  if (jsMapFile.exists()) {
-    val destMap = targetDir / "main.js.map"
-    IO.copyFile(jsMapFile, destMap)
-    copied = copied :+ destMap
-  }
-  copied
-}
+}.value
