@@ -63,7 +63,7 @@
 - [x] Task: Static Asset Serving & GraalVM Native Image Setup (1a06e2d)
     - [x] Write verification tests for embedded static asset serving and reflection-free native build configuration
     - [x] Implement backend static resource serving and `sbt-native-packager` GraalVM native image settings
-- [ ] Task: Containerization & Local Dev Orchestration
-    - [ ] Write verification tests for Docker image build and healthcheck endpoints
-    - [ ] Implement multi-stage Dockerfile and `docker-compose.yml` with PostgreSQL and `schema.sql` mounting
+- [x] Task: Containerization & Local Dev Orchestration (4c099bc)
+    - [x] Write verification tests for Docker image build and healthcheck endpoints
+    - [x] Implement multi-stage Dockerfile and `docker-compose.yml` with PostgreSQL and `schema.sql` mounting
 - [ ] Task: Conductor - User Manual Verification 'Phase 7: GraalVM Native Image Compilation & Docker Packaging' (Protocol in workflow.md)
