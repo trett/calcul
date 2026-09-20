@@ -80,18 +80,22 @@ SESSION_SECRET=your_random_32_character_session_signing_secret
 
 ---
 
-### 4. Start the Application
+### 4. Build and Start the Application
 
-Start the database and application containers in detached mode:
+Build the application image using sbt and start the stack:
 
 ```bash
-docker compose up -d --build
+# Build the Docker image via sbt
+sbt buildImage
+
+# Start the application and database containers in detached mode
+docker compose up -d
 ```
 
 The application will:
 1. Start PostgreSQL and automatically initialize the database schema from `schema.sql`.
 2. Wait for PostgreSQL to become healthy.
-3. Build and launch the CalTrack application container.
+3. Launch the CalTrack application container.
 
 #### Verify the Deployment
 Check container status:
@@ -198,7 +202,8 @@ To update to a new version:
 ```bash
 cd /opt/caltrack
 git pull
-docker compose up -d --build
+sbt buildImage
+docker compose up -d
 ```
 
 ---

@@ -37,13 +37,12 @@ class HealthcheckSuite extends FunSuite:
     finally conn.close()
   }
 
-  test("Dockerfile and docker-compose.yml exist and specify postgres schema initialization") {
-    val dockerfile = new File("Dockerfile")
-    val compose    = new File("docker-compose.yml")
-    assert(dockerfile.exists(), "Dockerfile must exist")
+  test("docker-compose.yml exists and specifies postgres schema initialization and calcul-backend image") {
+    val compose = new File("docker-compose.yml")
     assert(compose.exists(), "docker-compose.yml must exist")
 
     val composeContent = Files.readString(compose.toPath)
     assert(composeContent.contains("schema.sql"), "docker-compose.yml must mount schema.sql")
     assert(composeContent.contains("postgres"), "docker-compose.yml must define postgres service")
+    assert(composeContent.contains("calcul-backend"), "docker-compose.yml must reference calcul-backend image")
   }
