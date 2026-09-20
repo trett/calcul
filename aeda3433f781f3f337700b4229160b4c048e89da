@@ -1,0 +1,7 @@
+Task: Google OAuth2 Flow & Session Management
+Summary: Implemented AuthService, HMAC session token generation/validation, Google profile persistence, and Tapir route bindings for login, callback, user profile, and logout.
+Files:
+- backend/src/main/scala/com/calcul/auth/AuthService.scala: OAuth2 URL generator, HMAC session token manager, and user upsert
+- backend/src/main/scala/com/calcul/server/ServerRoutes.scala: Complete 12-endpoint Tapir Netty route configuration
+- backend/src/test/scala/com/calcul/auth/AuthServiceSuite.scala: Unit test verifying Google OAuth URL, HMAC signature verification, and user creation
+Why: Guarantees user privacy and secure access to personalized meal, calorie, and weight records.
