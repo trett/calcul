@@ -4,9 +4,9 @@
 - [x] Task: Multi-Module sbt Configuration (b7f1243)
     - [x] Write configuration verification tests for sbt build structure
     - [x] Implement `build.sbt`, `project/plugins.sbt`, and `project/build.properties` supporting `shared`, `backend`, and `frontend` modules on Scala 3.9.0
-- [ ] Task: Code Quality & Tooling Setup
-    - [ ] Write lint and format test checks
-    - [ ] Configure `.scalafmt.conf` and `.scalafix.conf` with strictest rules and add compiler flags in `build.sbt`
+- [x] Task: Code Quality & Tooling Setup (08685fc)
+    - [x] Write lint and format test checks
+    - [x] Configure `.scalafmt.conf` and `.scalafix.conf` with strictest rules and add compiler flags in `build.sbt`
 - [ ] Task: PostgreSQL Schema Script & Database Connectivity
     - [ ] Write integration test verifying connection to PostgreSQL and execution of `schema.sql`
     - [ ] Implement `schema.sql` and direct JDBC connection pool configuration
