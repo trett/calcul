@@ -42,7 +42,7 @@
     - [x] Implement backend service and endpoint handlers for `POST /api/weights` and `GET /api/weights`
 - [x] Task: Conductor - User Manual Verification 'Phase 4: Calorie Target, Weight Tracking & Daily Aggregations' (Protocol in workflow.md)
 
-## Phase 5: Google OAuth2 Authentication
+## Phase 5: Google OAuth2 Authentication (Checkpoint: 464bf71)
 - [x] Task: Google OAuth2 Flow & Session Management (aeda343)
     - [x] Write unit tests for OAuth token exchange, Google profile extraction, and secure session cookie verification
     - [x] Implement OAuth2 endpoints (`/api/auth/login`, `/api/auth/callback`, `/api/auth/me`, `/api/auth/logout`) and auth middleware
