@@ -130,7 +130,15 @@ class ServerRoutes(
         else (Array.emptyByteArray, "application/octet-stream")
       }
 
+  val healthRoute: ServerEndpoint[Any, Identity] =
+    sttp.tapir.endpoint.get
+      .in("api" / "health")
+      .out(sttp.tapir.stringBody)
+      .summary("Healthcheck endpoint")
+      .serverLogicSuccess[Identity](_ => """{"status":"ok"}""")
+
   val allRoutes: List[ServerEndpoint[Any, Identity]] = List(
+    healthRoute,
     assetsRoute,
     loginRoute,
     callbackRoute,
