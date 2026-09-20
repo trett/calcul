@@ -1,0 +1,8 @@
+Task: Direct-Style Netty Server & Database Repositories
+Summary: Implemented reflection-free direct-style JDBC repositories (UserRepository, DailyTargetRepository, MealRepository, DailyWeightRepository) and NettySyncServer route binding.
+Files:
+- backend/src/main/scala/com/calcul/db/Repositories.scala: JDBC data access layer with ANSI SQL queries
+- backend/src/main/scala/com/calcul/server/ServerRoutes.scala: Tapir server endpoint bindings for Netty sync server
+- backend/src/test/scala/com/calcul/db/RepositorySuite.scala: Comprehensive unit test suite for all repositories
+- backend/src/test/scala/com/calcul/server/ServerRoutesSuite.scala: Verification test for NettySyncServer binding
+Why: Provides the direct-style synchronous persistence and HTTP serving layer optimized for Java 21 virtual threads.
