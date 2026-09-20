@@ -1,0 +1,4 @@
+Task Summary: Daily Weight Logging Component
+- Implemented WeightView featuring date selection, numeric weight input with 0.1 precision, unit toggle (kg/lbs), and weigh-in logging via ApiClient.recordWeight.
+- Implemented 30-day analytics summary cards (latest weight, delta, minimum, and maximum).
+- Implemented chronological weight history list with date badges.
