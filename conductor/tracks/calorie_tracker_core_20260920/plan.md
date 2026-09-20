@@ -19,9 +19,9 @@
 - [x] Task: Shared Tapir API Endpoint Declarations (151fbde)
     - [x] Write unit tests verifying Tapir endpoint definitions and schema generation
     - [x] Implement Tapir endpoint declarations in `shared` module for Auth, Meals, AI Analysis, Calories, and Weight
-- [ ] Task: Direct-Style Netty Server & Database Repositories
-    - [ ] Write repository unit and integration tests for users, meals, calorie targets, and daily weights
-    - [ ] Implement direct-style JDBC repositories and Netty/Ox HTTP server routes in `backend` module
+- [x] Task: Direct-Style Netty Server & Database Repositories (0a15e92)
+    - [x] Write repository unit and integration tests for users, meals, calorie targets, and daily weights
+    - [x] Implement direct-style JDBC repositories and Netty/Ox HTTP server routes in `backend` module
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Domain Modeling, Shared Endpoints & Direct-Style Backend' (Protocol in workflow.md)
 
 ## Phase 3: AI Service (sttp-ai + Gemini Flash) & Multimodal Meal Ingestion
