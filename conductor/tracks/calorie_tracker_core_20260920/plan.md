@@ -48,7 +48,7 @@
     - [x] Implement OAuth2 endpoints (`/api/auth/login`, `/api/auth/callback`, `/api/auth/me`, `/api/auth/logout`) and auth middleware
 - [x] Task: Conductor - User Manual Verification 'Phase 5: Google OAuth2 Authentication' (Protocol in workflow.md)
 
-## Phase 6: Scala.js Frontend with Laminar & Shoelace Components
+## Phase 6: Scala.js Frontend with Laminar & Shoelace Components (Checkpoint: 267dc0a)
 - [x] Task: Frontend Application Shell & Shoelace Theme Integration (aba45b0)
     - [x] Implement Laminar root component, router, and `laminar-shoelace-components` setup
 - [x] Task: Meal Ingestion & AI Review UI Component (15cdf76)
