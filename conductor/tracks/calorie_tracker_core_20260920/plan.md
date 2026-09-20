@@ -31,7 +31,7 @@
 - [x] Task: Meal Logging & Analysis Endpoints (2cce618)
     - [x] Write integration tests for `POST /api/meals/analyze` and `POST /api/meals`
     - [x] Implement backend endpoint logic for multimodal image upload, description analysis, and meal persistence
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: AI Service (sttp-ai + Gemini Flash) & Multimodal Meal Ingestion' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3: AI Service (sttp-ai + Gemini Flash) & Multimodal Meal Ingestion' (Protocol in workflow.md)
 
 ## Phase 4: Calorie Target, Weight Tracking & Daily Aggregations
 - [ ] Task: Daily Calorie Budget & Aggregation Service
