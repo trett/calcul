@@ -1,0 +1,8 @@
+Task: Meal Logging & Analysis Endpoints
+Summary: Implemented MealService and route bindings for meal analysis with Gemini, meal creation with item breakdown, meal history listing by date, and meal deletion.
+Files:
+- backend/src/main/scala/com/calcul/server/MealService.scala: Domain service for meals and AI analysis
+- backend/src/main/scala/com/calcul/server/ServerRoutes.scala: Tapir Netty route bindings for meal operations
+- backend/src/test/scala/com/calcul/server/MealEndpointsSuite.scala: Integration test verifying end-to-end meal lifecycle
+- backend/src/test/scala/com/calcul/server/ServerRoutesSuite.scala: Updated routes count test
+Why: Provides the core meal ingestion, analysis, and management capability for the calorie tracking application.
