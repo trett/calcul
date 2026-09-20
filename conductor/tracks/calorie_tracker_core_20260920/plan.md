@@ -13,9 +13,9 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Project Scaffolding & Multi-Module Build Setup' (Protocol in workflow.md)
 
 ## Phase 2: Domain Modeling, Shared Endpoints & Direct-Style Backend
-- [ ] Task: Shared Domain Models & JSON Codecs
-    - [ ] Write unit tests for domain case classes and reflection-free compile-time macro JSON serialization
-    - [ ] Implement shared domain models, DTOs, and compile-time codecs in `shared` module
+- [x] Task: Shared Domain Models & JSON Codecs (c5feb5c)
+    - [x] Write unit tests for domain case classes and reflection-free compile-time macro JSON serialization
+    - [x] Implement shared domain models, DTOs, and compile-time codecs in `shared` module
 - [ ] Task: Shared Tapir API Endpoint Declarations
     - [ ] Write unit tests verifying Tapir endpoint definitions and schema generation
     - [ ] Implement Tapir endpoint declarations in `shared` module for Auth, Meals, AI Analysis, Calories, and Weight
