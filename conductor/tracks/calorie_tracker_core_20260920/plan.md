@@ -59,11 +59,11 @@
     - [x] Implement weigh-in entry card and weight trend visualization
 - [x] Task: Conductor - User Manual Verification 'Phase 6: Scala.js Frontend with Laminar & Shoelace Components' (Protocol in workflow.md)
 
-## Phase 7: GraalVM Native Image Compilation & Docker Packaging
+## Phase 7: GraalVM Native Image Compilation & Docker Packaging (Checkpoint: d303cab)
 - [x] Task: Static Asset Serving & GraalVM Native Image Setup (1a06e2d)
     - [x] Write verification tests for embedded static asset serving and reflection-free native build configuration
     - [x] Implement backend static resource serving and `sbt-native-packager` GraalVM native image settings
 - [x] Task: Containerization & Local Dev Orchestration (4c099bc)
     - [x] Write verification tests for Docker image build and healthcheck endpoints
     - [x] Implement multi-stage Dockerfile and `docker-compose.yml` with PostgreSQL and `schema.sql` mounting
-- [ ] Task: Conductor - User Manual Verification 'Phase 7: GraalVM Native Image Compilation & Docker Packaging' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 7: GraalVM Native Image Compilation & Docker Packaging' (Protocol in workflow.md)
