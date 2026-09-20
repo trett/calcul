@@ -21,10 +21,13 @@ object DashboardView:
         try targetInput.now().toInt
         catch case _: Exception => 2000
       val req = SetTargetRequest(AppState.selectedDate.now(), t)
-      ApiClient.setDailyTarget(req).foreach { _ =>
-        targetModalOpen.set(false)
-        AppState.notify(s"Daily target updated to $t kcal", "success")
-        AppState.loadDailyData()
+      ApiClient.setDailyTarget(req).onComplete {
+        case scala.util.Success(_) =>
+          targetModalOpen.set(false)
+          AppState.notify(s"Daily target updated to $t kcal", "success")
+          AppState.loadDailyData()
+        case scala.util.Failure(err) =>
+          AppState.notify(s"Failed to update target: ${err.getMessage}", "danger")
       }
 
     div(
@@ -258,9 +261,12 @@ object DashboardView:
                       slIcon(slName := "trash", slSlot := "prefix"),
                       "Delete",
                       onClick --> { _ =>
-                        ApiClient.deleteMeal(meal.id).foreach { _ =>
-                          AppState.notify("Meal deleted", "neutral")
-                          AppState.loadDailyData()
+                        ApiClient.deleteMeal(meal.id).onComplete {
+                          case scala.util.Success(_) =>
+                            AppState.notify("Meal deleted", "neutral")
+                            AppState.loadDailyData()
+                          case scala.util.Failure(err) =>
+                            AppState.notify(s"Failed to delete meal: ${err.getMessage}", "danger")
                         }
                       }
                     )

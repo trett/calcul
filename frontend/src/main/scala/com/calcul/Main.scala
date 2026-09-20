@@ -11,8 +11,7 @@ object Main:
       AppState.loadCurrentUser()
       AppState.loadDailyData()
 
-      val root = dom.document.getElementById("app")
-      if root != null then
+      Option(dom.document.getElementById("app")).foreach { root =>
         val content = div(
           child <-- AppState.activeTab.signal.map {
             case "dashboard" =>
@@ -24,6 +23,7 @@ object Main:
           }
         )
         render(root, AppShell(content))
+      }
 
     if dom.document.readyState == "loading" then
       dom.document.addEventListener("DOMContentLoaded", (_: dom.Event) => init())

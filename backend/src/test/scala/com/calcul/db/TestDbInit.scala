@@ -23,8 +23,9 @@ object TestDbInit:
       for sql <- statements do stmt.execute(sql)
     }
 
-    val md = conn.getMetaData
-    Using.resource(md.getTables(null, null, "%", Array("TABLE"))) { rs =>
+    val md      = conn.getMetaData
+    val nullStr = Option.empty[String].orNull
+    Using.resource(md.getTables(nullStr, nullStr, "%", Array("TABLE"))) { rs =>
       val tableNames = collection.mutable.Set[String]()
       while rs.next() do tableNames.add(rs.getString("TABLE_NAME").toLowerCase)
       tableNames.toSet

@@ -46,6 +46,11 @@ object ApiClient:
       else Future.failed(new RuntimeException(s"PUT $path failed with status ${res.status}: ${res.statusText}"))
 
   // --- Auth APIs ---
+  def getLoginUrl(): Future[String] =
+    request("/api/auth/login", HttpMethod.GET, httpContentType = None).flatMap: res =>
+      if res.ok then res.text().toFuture
+      else Future.failed(new RuntimeException(s"Get login URL failed: ${res.status}"))
+
   def getCurrentUser(): Future[Option[UserSummary]] =
     request("/api/auth/me", HttpMethod.GET, httpContentType = None).flatMap: res =>
       if res.ok then res.text().toFuture.map(t => Some(read[UserSummary](t)))
@@ -57,15 +62,11 @@ object ApiClient:
       else Future.failed(new RuntimeException(s"Logout failed: ${res.status}"))
 
   // --- Meal & AI APIs ---
+  def analyzeMeal(req: AnalyzeMealRequest): Future[MealAnalysisResponse] =
+    postJson[AnalyzeMealRequest, MealAnalysisResponse]("/api/meals/analyze", req)
+
   def analyzeMeal(descriptionOrPrompt: String): Future[MealAnalysisResponse] =
-    request(
-      "/api/meals/analyze",
-      HttpMethod.POST,
-      httpBody = Some(descriptionOrPrompt),
-      httpContentType = Some("text/plain")
-    ).flatMap: res =>
-      if res.ok then res.text().toFuture.map(read[MealAnalysisResponse](_))
-      else Future.failed(new RuntimeException(s"Analyze failed with status ${res.status}"))
+    analyzeMeal(AnalyzeMealRequest(description = Some(descriptionOrPrompt)))
 
   def createMeal(req: CreateMealRequest): Future[Meal] =
     postJson[CreateMealRequest, Meal]("/api/meals", req)

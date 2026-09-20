@@ -19,9 +19,13 @@ object Main:
     val host = sys.env.getOrElse("HOST", "0.0.0.0")
     val port = sys.env.get("PORT").flatMap(_.toIntOption).getOrElse(8080)
 
-    val serverConn = dataSource.getConnection
-    val routes     = new ServerRoutes(serverConn, geminiService, authConfig)
-    val server     = routes.createServer(host, port)
+    val routes = new ServerRoutes(dataSource, geminiService, authConfig)
+    val server = routes.createServer(host, port)
+
+    sys.addShutdownHook {
+      println("Shutting down CalTrack AI and closing connection pool...")
+      dataSource.close()
+    }
 
     println(s"Starting CalTrack AI Netty server on $host:$port...")
     supervised {

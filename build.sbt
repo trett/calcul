@@ -63,6 +63,7 @@ lazy val backend = (project in file("backend"))
     Compile / mainClass := Some("com.calcul.Main"),
     Compile / resourceGenerators += generateFrontendAssets.taskValue,
     Test / resourceGenerators += generateFrontendAssets.taskValue,
+    Test / parallelExecution := false,
     // GraalVM Native Image Settings
     graalVMNativeImageOptions ++= Seq(
       "--no-fallback",
@@ -133,7 +134,7 @@ lazy val backend = (project in file("backend"))
       "com.softwaremill.sttp.ai" %% "gemini" % sttpAiVersion,
       "org.postgresql" % "postgresql" % postgresqlVersion,
       "com.zaxxer" % "HikariCP" % hikariVersion,
-      "com.h2database" % "h2" % "2.3.232" % Test,
+      "org.testcontainers" % "postgresql" % "1.20.4" % Test,
       "org.scalameta" %% "munit" % munitVersion % Test
     )
   )

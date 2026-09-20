@@ -19,8 +19,7 @@ object AppState:
   val isLoading: Var[Boolean]                        = Var(false)
 
   private def loadSavedTheme(): String =
-    val saved = dom.window.localStorage.getItem("caltrack_theme")
-    if saved != null && saved.nonEmpty then saved else "light"
+    Option(dom.window.localStorage.getItem("caltrack_theme")).filter(_.nonEmpty).getOrElse("light")
 
   def initTheme(): Unit =
     val current = theme.now()

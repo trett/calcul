@@ -14,30 +14,33 @@ object Endpoints:
       .out(stringBody)
       .summary("Initiate Google OAuth2 login")
 
-  val callbackEndpoint: PublicEndpoint[String, Unit, UserSummary, Any] =
+  val callbackEndpoint: PublicEndpoint[String, Unit, (Option[String], String), Any] =
     endpoint.get
       .in("api" / "auth" / "callback")
       .in(query[String]("code"))
-      .out(jsonBody[UserSummary])
+      .out(header[Option[String]]("Set-Cookie"))
+      .out(stringBody)
       .summary("Google OAuth2 callback exchange")
 
-  val meEndpoint: PublicEndpoint[Unit, Unit, UserSummary, Any] =
+  val meEndpoint: PublicEndpoint[Option[String], Unit, UserSummary, Any] =
     endpoint.get
       .in("api" / "auth" / "me")
+      .in(cookie[Option[String]]("session"))
       .out(jsonBody[UserSummary])
       .summary("Get current authenticated user")
 
-  val logoutEndpoint: PublicEndpoint[Unit, Unit, String, Any] =
+  val logoutEndpoint: PublicEndpoint[Unit, Unit, (Option[String], String), Any] =
     endpoint.post
       .in("api" / "auth" / "logout")
+      .out(header[Option[String]]("Set-Cookie"))
       .out(stringBody)
       .summary("Logout user session")
 
   // --- Meals & AI Analysis Endpoints ---
-  val analyzeMealEndpoint: PublicEndpoint[String, Unit, MealAnalysisResponse, Any] =
+  val analyzeMealEndpoint: PublicEndpoint[AnalyzeMealRequest, Unit, MealAnalysisResponse, Any] =
     endpoint.post
       .in("api" / "meals" / "analyze")
-      .in(stringBody)
+      .in(jsonBody[AnalyzeMealRequest])
       .out(jsonBody[MealAnalysisResponse])
       .summary("Analyze meal description/photo with Gemini Flash")
 

@@ -3,12 +3,20 @@ package com.calcul.server
 import java.sql.Connection
 import java.time.{Instant, LocalDate}
 import java.util.UUID
+import javax.sql.DataSource
 import com.calcul.ai.GeminiService
-import com.calcul.db.MealRepository
+import com.calcul.db.{DbTransactor, MealRepository}
 import com.calcul.model.*
 
-class MealService(conn: Connection, gemini: GeminiService):
-  private val mealRepo = new MealRepository(conn)
+class MealService(transactor: DbTransactor, gemini: GeminiService):
+
+  def this(ds: DataSource, gemini: GeminiService) = this(DbTransactor.fromDataSource(ds), gemini)
+  def this(conn: Connection, gemini: GeminiService) = this(DbTransactor.fromConnection(conn), gemini)
+
+  private val mealRepo = new MealRepository(transactor)
+
+  def analyze(req: AnalyzeMealRequest): MealAnalysisResponse =
+    gemini.analyzeMeal(req.description, req.imageBase64, req.mimeType)
 
   def analyze(description: String, imageBase64: Option[String] = None): MealAnalysisResponse =
     gemini.analyzeMeal(Some(description), imageBase64)

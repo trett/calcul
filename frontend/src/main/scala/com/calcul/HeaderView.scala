@@ -55,9 +55,10 @@ object HeaderView:
           styleAttr := "padding: 0.25rem 0.5rem; border: 1px solid var(--sl-color-neutral-300); border-radius: var(--sl-border-radius-medium); font-size: 0.85rem; background: var(--sl-input-background-color); color: var(--sl-color-neutral-900);",
           value <-- AppState.selectedDate.signal.map(_.toString),
           onChange.mapToValue --> { v =>
-            if v != null && v.nonEmpty then
-              try AppState.setDate(LocalDate.parse(v))
+            Option(v).filter(_.nonEmpty).foreach { str =>
+              try AppState.setDate(LocalDate.parse(str))
               catch case _: Exception => ()
+            }
           }
         )
       ),
@@ -124,15 +125,17 @@ object HeaderView:
               )
             )
           case None =>
-            a(
-              href      := "/api/auth/login",
-              styleAttr := "text-decoration: none;",
-              slButton(
-                slSize    := "small",
-                slVariant := "primary",
-                slIcon(slName := "google", styleAttr := "margin-right: 0.4rem;"),
-                "Sign in with Google"
-              )
+            slButton(
+              slSize    := "small",
+              slVariant := "primary",
+              slIcon(slName := "google", slSlot := "prefix"),
+              "Sign in with Google",
+              onClick --> { _ =>
+                import scala.concurrent.ExecutionContext.Implicits.global
+                ApiClient.getLoginUrl().foreach { url =>
+                  org.scalajs.dom.window.location.href = url
+                }
+              }
             )
         }
       )

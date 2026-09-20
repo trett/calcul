@@ -14,7 +14,8 @@ grep -q "runner.dialect = scala3" .scalafmt.conf || { echo ".scalafmt.conf missi
 grep -q "scalacOptions" build.sbt || { echo "build.sbt missing scalacOptions"; exit 1; }
 grep -q -- "-Werror" build.sbt || { echo "build.sbt missing -Werror"; exit 1; }
 
-# Run scalafmt check
+# Run scalafmt and scalafix checks
 sbt -Dsbt.supershell=false --batch scalafmtCheckAll
+sbt -Dsbt.supershell=false --batch "scalafixAll --check"
 
 echo "=== Code Quality & Tooling setup verified! ==="

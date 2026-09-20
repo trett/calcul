@@ -1,20 +1,17 @@
 package com.calcul.server
 
 import munit.FunSuite
-import java.sql.{Connection, DriverManager}
 import java.time.{Instant, LocalDate}
 import java.util.UUID
-import com.calcul.db.{TestDbInit, UserRepository}
+import com.calcul.db.{TestPostgresContainer, UserRepository}
 import com.calcul.model.*
 
 class WeightTrackingSuite extends FunSuite:
 
   test("WeightService records daily weights and retrieves range history") {
-    val jdbcUrl =
-      s"jdbc:h2:mem:weight_tracking_${UUID.randomUUID()};MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1"
-    val conn: Connection = DriverManager.getConnection(jdbcUrl, "sa", "")
+    TestPostgresContainer.clearData()
+    val conn = TestPostgresContainer.newConnection()
     try
-      TestDbInit.initSchema(conn)
       val userRepo = new UserRepository(conn)
       val userId   = UUID.randomUUID()
       userRepo.upsert(User(userId, "g-weight-1", "user@weight.com", "Weight User", None, Instant.now()))

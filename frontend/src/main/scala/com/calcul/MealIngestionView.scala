@@ -1,50 +1,60 @@
 package com.calcul
 
-import com.raquo.laminar.api.L.*
-import com.raquo.airstream.state.Var
-import org.scalajs.dom
+import java.util.concurrent.atomic.AtomicInteger
+import scala.util.{Failure, Success}
 import scala.concurrent.ExecutionContext.Implicits.global
+import org.scalajs.dom
+import com.raquo.airstream.state.Var
+import com.raquo.laminar.api.L.*
 import java.time.LocalDate
 import com.calcul.ShoelaceDSL.*
-import com.calcul.model.{CreateMealItem, CreateMealRequest}
+import com.calcul.model.{AnalyzeMealRequest, CreateMealItem, CreateMealRequest}
 
 object MealIngestionView:
 
   final case class EditableItem(id: Int, name: Var[String], calories: Var[Int])
 
   def apply(): HtmlElement =
-    val descriptionVar      = Var("")
-    val selectedFileNameVar = Var(Option.empty[String])
-    val isAnalyzingVar      = Var(false)
-    val isSavingVar         = Var(false)
+    val descriptionVar         = Var("")
+    val selectedFileNameVar    = Var(Option.empty[String])
+    val selectedImageBase64Var = Var(Option.empty[String])
+    val selectedImageMimeVar   = Var(Option.empty[String])
+    val isAnalyzingVar         = Var(false)
+    val isSavingVar            = Var(false)
 
     // Modal state
     val reviewModalOpenVar   = Var(false)
     val reviewExplanationVar = Var("")
     val reviewItemsVar       = Var(List.empty[EditableItem])
-    var nextItemId           = 1
+    val nextItemId           = new AtomicInteger(1)
 
     def runAnalysis(): Unit =
-      val desc     = descriptionVar.now().trim
-      val fileName = selectedFileNameVar.now().getOrElse("")
-      val prompt =
-        if desc.nonEmpty && fileName.nonEmpty then s"$desc [attached image: $fileName]"
-        else if desc.nonEmpty then desc
-        else if fileName.nonEmpty then s"Meal from image: $fileName"
-        else ""
+      val desc    = descriptionVar.now().trim
+      val b64Opt  = selectedImageBase64Var.now()
+      val mimeOpt = selectedImageMimeVar.now()
 
-      if prompt.isEmpty then AppState.notify("Please enter a meal description or select an image", "warning")
+      if desc.isEmpty && b64Opt.isEmpty then
+        AppState.notify("Please enter a meal description or select an image", "warning")
       else
         isAnalyzingVar.set(true)
-        ApiClient.analyzeMeal(prompt).foreach { analysis =>
-          isAnalyzingVar.set(false)
-          reviewExplanationVar.set(analysis.explanation)
-          val items = analysis.items.zipWithIndex.map { case (item, idx) =>
-            EditableItem(idx + 1, Var(item.name), Var(item.calories))
-          }
-          nextItemId = items.length + 1
-          reviewItemsVar.set(items)
-          reviewModalOpenVar.set(true)
+        val req = AnalyzeMealRequest(
+          description = if desc.nonEmpty then Some(desc) else None,
+          imageBase64 = b64Opt,
+          mimeType = mimeOpt
+        )
+        ApiClient.analyzeMeal(req).onComplete {
+          case Success(analysis) =>
+            isAnalyzingVar.set(false)
+            reviewExplanationVar.set(analysis.explanation)
+            val items = analysis.items.zipWithIndex.map { case (item, idx) =>
+              EditableItem(idx + 1, Var(item.name), Var(item.calories))
+            }
+            nextItemId.set(items.length + 1)
+            reviewItemsVar.set(items)
+            reviewModalOpenVar.set(true)
+          case Failure(err) =>
+            isAnalyzingVar.set(false)
+            AppState.notify(s"AI Analysis failed: ${err.getMessage}", "danger")
         }
 
     def saveMeal(): Unit =
@@ -60,13 +70,19 @@ object MealIngestionView:
         items = items
       )
       isSavingVar.set(true)
-      ApiClient.createMeal(req).foreach { _ =>
-        isSavingVar.set(false)
-        reviewModalOpenVar.set(false)
-        descriptionVar.set("")
-        selectedFileNameVar.set(None)
-        AppState.notify("Meal logged successfully!", "success")
-        AppState.loadDailyData()
+      ApiClient.createMeal(req).onComplete {
+        case Success(_) =>
+          isSavingVar.set(false)
+          reviewModalOpenVar.set(false)
+          descriptionVar.set("")
+          selectedFileNameVar.set(None)
+          selectedImageBase64Var.set(None)
+          selectedImageMimeVar.set(None)
+          AppState.notify("Meal logged successfully!", "success")
+          AppState.loadDailyData()
+        case Failure(err) =>
+          isSavingVar.set(false)
+          AppState.notify(s"Failed to save meal: ${err.getMessage}", "danger")
       }
 
     div(
@@ -125,9 +141,22 @@ object MealIngestionView:
                 styleAttr := "display: none;",
                 onChange --> { (e: dom.Event) =>
                   val target = e.target.asInstanceOf[dom.HTMLInputElement]
-                  if target.files != null && target.files.length > 0 then
-                    val file = target.files(0)
+                  Option(target.files).filter(_.length > 0).foreach { files =>
+                    val file = files(0)
                     selectedFileNameVar.set(Some(file.name))
+                    val reader = new dom.FileReader()
+                    reader.onload = (_: dom.Event) =>
+                      val dataUrl = reader.result.asInstanceOf[String]
+                      val parts   = dataUrl.split(",", 2)
+                      val mime =
+                        if parts.length == 2 && parts(0).contains(":") && parts(0).contains(";") then
+                          parts(0).substring(parts(0).indexOf(":") + 1, parts(0).indexOf(";"))
+                        else "image/jpeg"
+                      val b64 = if parts.length == 2 then parts(1) else dataUrl
+                      selectedImageMimeVar.set(Some(mime))
+                      selectedImageBase64Var.set(Some(b64))
+                    reader.readAsDataURL(file)
+                  }
                 }
               )
             ),
@@ -172,9 +201,10 @@ object MealIngestionView:
               styleAttr := "padding: 0.3rem 0.5rem; border: 1px solid var(--sl-color-neutral-300); border-radius: var(--sl-border-radius-medium);",
               value <-- AppState.selectedDate.signal.map(_.toString),
               onChange.mapToValue --> { v =>
-                if v != null && v.nonEmpty then
-                  try AppState.setDate(LocalDate.parse(v))
+                Option(v).filter(_.nonEmpty).foreach { str =>
+                  try AppState.setDate(LocalDate.parse(str))
                   catch case _: Exception => ()
+                }
               }
             )
           ),
@@ -232,8 +262,7 @@ object MealIngestionView:
                 slIcon(slName := "plus-lg", slSlot := "prefix"),
                 "Add Item",
                 onClick --> { _ =>
-                  val newItem = EditableItem(nextItemId, Var("Custom Item"), Var(100))
-                  nextItemId += 1
+                  val newItem = EditableItem(nextItemId.getAndIncrement(), Var("Custom Item"), Var(100))
                   reviewItemsVar.update(_ :+ newItem)
                 }
               )
@@ -247,7 +276,6 @@ object MealIngestionView:
             span(
               styleAttr := "color: var(--sl-color-primary-700);",
               child.text <-- reviewItemsVar.signal.flatMapSwitch { items =>
-                // Combine calories of all items reactively
                 val signals = items.map(_.calories.signal)
                 if signals.isEmpty then Val("0 kcal")
                 else Signal.combineSeq(signals).map(cals => s"${cals.sum} kcal")

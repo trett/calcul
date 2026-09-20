@@ -5,17 +5,14 @@ import java.io.File
 import java.net.URI
 import java.net.http.{HttpClient, HttpRequest, HttpResponse}
 import java.nio.file.Files
-import java.sql.{Connection, DriverManager}
 import ox.*
-import com.calcul.db.TestDbInit
+import com.calcul.db.TestPostgresContainer
 
 class HealthcheckSuite extends FunSuite:
 
   test("ServerRoutes serves healthcheck endpoint on GET /api/health") {
-    val jdbcUrl          = "jdbc:h2:mem:healthcheck_test;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1"
-    val conn: Connection = DriverManager.getConnection(jdbcUrl, "sa", "")
+    val conn = TestPostgresContainer.newConnection()
     try
-      TestDbInit.initSchema(conn)
       val routes = new ServerRoutes(conn)
       val server = routes.createServer(port = 8897)
 
