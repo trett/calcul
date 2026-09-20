@@ -55,6 +55,7 @@ lazy val backend = (project in file("backend"))
       "com.softwaremill.sttp.ai" %% "gemini" % sttpAiVersion,
       "org.postgresql" % "postgresql" % postgresqlVersion,
       "com.zaxxer" % "HikariCP" % hikariVersion,
+      "com.h2database" % "h2" % "2.3.232" % Test,
       "org.scalameta" %% "munit" % munitVersion % Test
     )
   )
