@@ -55,8 +55,8 @@
     - [x] Implement photo upload / text description inputs, loading indicator, and editable calorie confirmation modal
 - [x] Task: Daily Dashboard, Timeline Feed & Calendar View (d5aea19)
     - [x] Implement daily calorie dial/progress component, chronological meal timeline, and date picker
-- [ ] Task: Daily Weight Logging Component
-    - [ ] Implement weigh-in entry card and weight trend visualization
+- [x] Task: Daily Weight Logging Component (c6ed8e9)
+    - [x] Implement weigh-in entry card and weight trend visualization
 - [ ] Task: Conductor - User Manual Verification 'Phase 6: Scala.js Frontend with Laminar & Shoelace Components' (Protocol in workflow.md)
 
 ## Phase 7: GraalVM Native Image Compilation & Docker Packaging
