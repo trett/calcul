@@ -46,7 +46,7 @@
 - [x] Task: Google OAuth2 Flow & Session Management (aeda343)
     - [x] Write unit tests for OAuth token exchange, Google profile extraction, and secure session cookie verification
     - [x] Implement OAuth2 endpoints (`/api/auth/login`, `/api/auth/callback`, `/api/auth/me`, `/api/auth/logout`) and auth middleware
-- [ ] Task: Conductor - User Manual Verification 'Phase 5: Google OAuth2 Authentication' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 5: Google OAuth2 Authentication' (Protocol in workflow.md)
 
 ## Phase 6: Scala.js Frontend with Laminar & Shoelace Components
 - [ ] Task: Frontend Application Shell & Shoelace Theme Integration
