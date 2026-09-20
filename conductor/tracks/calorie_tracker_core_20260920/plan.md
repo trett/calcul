@@ -57,7 +57,7 @@
     - [x] Implement daily calorie dial/progress component, chronological meal timeline, and date picker
 - [x] Task: Daily Weight Logging Component (c6ed8e9)
     - [x] Implement weigh-in entry card and weight trend visualization
-- [ ] Task: Conductor - User Manual Verification 'Phase 6: Scala.js Frontend with Laminar & Shoelace Components' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 6: Scala.js Frontend with Laminar & Shoelace Components' (Protocol in workflow.md)
 
 ## Phase 7: GraalVM Native Image Compilation & Docker Packaging
 - [ ] Task: Static Asset Serving & GraalVM Native Image Setup
