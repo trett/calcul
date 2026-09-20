@@ -1,0 +1,6 @@
+Task Summary: Frontend Application Shell & Shoelace Theme Integration
+- Implemented ApiClient for type-safe HTTP communication with backend Tapir endpoints via Fetch and compile-time macro serialization.
+- Implemented AppState managing current user, selected date, dark/light theme, active tab navigation, and reactive notifications.
+- Created ShoelaceDSL mapping Shoelace web components and attributes cleanly for Laminar.
+- Implemented HeaderView with brand, date navigation, tab buttons, theme toggle, and Google authentication status.
+- Implemented AppShell and Main entry point linking into the DOM.
