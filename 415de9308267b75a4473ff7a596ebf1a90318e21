@@ -1,0 +1,7 @@
+Task: Daily Calorie Budget & Aggregation Service
+Summary: Implemented CalorieService and endpoint bindings for setting daily calorie goals and retrieving running daily calorie consumed totals, remaining allowance, and meal counts.
+Files:
+- backend/src/main/scala/com/calcul/server/CalorieService.scala: Service for calorie targets and daily summation
+- backend/src/main/scala/com/calcul/server/ServerRoutes.scala: Tapir route bindings for GET /api/calories/daily and PUT /api/calories/target
+- backend/src/test/scala/com/calcul/server/CalorieAggregationSuite.scala: Unit test verifying budget computation, default target fallback, and multi-meal summation
+Why: Empowers users to monitor their ongoing calorie intake in real time against personalized targets.
