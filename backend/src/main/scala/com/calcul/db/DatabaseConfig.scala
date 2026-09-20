@@ -12,10 +12,14 @@ final case class DatabaseConfig(
 object DatabaseConfig:
   def fromEnv(): DatabaseConfig =
     DatabaseConfig(
-      jdbcUrl = sys.env.getOrElse("DATABASE_URL", "jdbc:postgresql://localhost:5432/calcul"),
-      username = sys.env.getOrElse("DATABASE_USER", "postgres"),
-      password = sys.env.getOrElse("DATABASE_PASSWORD", "postgres"),
-      maximumPoolSize = sys.env.get("DATABASE_POOL_SIZE").flatMap(_.toIntOption).getOrElse(10)
+      jdbcUrl = sys.env
+        .get("DATABASE_URL")
+        .orElse(sys.env.get("JDBC_URL"))
+        .getOrElse("jdbc:postgresql://localhost:5432/calcul"),
+      username = sys.env.get("DATABASE_USER").orElse(sys.env.get("DB_USER")).getOrElse("postgres"),
+      password = sys.env.get("DATABASE_PASSWORD").orElse(sys.env.get("DB_PASSWORD")).getOrElse("postgres"),
+      maximumPoolSize =
+        sys.env.get("DATABASE_POOL_SIZE").orElse(sys.env.get("DB_POOL_SIZE")).flatMap(_.toIntOption).getOrElse(10)
     )
 
   def createDataSource(config: DatabaseConfig): HikariDataSource =

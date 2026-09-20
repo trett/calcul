@@ -36,6 +36,7 @@ services:
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
       GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI:-http://localhost:8080/auth/callback}
+      SESSION_SECRET: ${SESSION_SECRET:-change-this-session-secret-in-production}
     depends_on:
       postgres:
         condition: service_healthy
