@@ -1,0 +1,239 @@
+package com.calcul.db
+
+import java.sql.{Connection, Date as SqlDate, ResultSet, Timestamp}
+import java.time.LocalDate
+import java.util.UUID
+import scala.util.Using
+import com.calcul.model.*
+
+class UserRepository(conn: Connection):
+
+  def upsert(user: User): Unit =
+    findByGoogleId(user.googleId) match
+      case Some(existing) =>
+        val sql = "UPDATE users SET email = ?, name = ?, picture_url = ? WHERE id = ?"
+        Using.resource(conn.prepareStatement(sql)) { ps =>
+          ps.setString(1, user.email)
+          ps.setString(2, user.name)
+          ps.setString(3, user.pictureUrl.orNull)
+          ps.setObject(4, existing.id)
+          ps.executeUpdate()
+        }
+      case None =>
+        val sql = "INSERT INTO users (id, google_id, email, name, picture_url, created_at) VALUES (?, ?, ?, ?, ?, ?)"
+        Using.resource(conn.prepareStatement(sql)) { ps =>
+          ps.setObject(1, user.id)
+          ps.setString(2, user.googleId)
+          ps.setString(3, user.email)
+          ps.setString(4, user.name)
+          ps.setString(5, user.pictureUrl.orNull)
+          ps.setTimestamp(6, Timestamp.from(user.createdAt))
+          ps.executeUpdate()
+        }
+
+  def findById(id: UUID): Option[User] =
+    val sql = "SELECT id, google_id, email, name, picture_url, created_at FROM users WHERE id = ?"
+    Using.resource(conn.prepareStatement(sql)) { ps =>
+      ps.setObject(1, id)
+      Using.resource(ps.executeQuery()) { rs =>
+        if rs.next() then Some(mapUser(rs)) else None
+      }
+    }
+
+  def findByGoogleId(googleId: String): Option[User] =
+    val sql = "SELECT id, google_id, email, name, picture_url, created_at FROM users WHERE google_id = ?"
+    Using.resource(conn.prepareStatement(sql)) { ps =>
+      ps.setString(1, googleId)
+      Using.resource(ps.executeQuery()) { rs =>
+        if rs.next() then Some(mapUser(rs)) else None
+      }
+    }
+
+  private def mapUser(rs: ResultSet): User =
+    User(
+      id = rs.getObject("id", classOf[UUID]),
+      googleId = rs.getString("google_id"),
+      email = rs.getString("email"),
+      name = rs.getString("name"),
+      pictureUrl = Option(rs.getString("picture_url")),
+      createdAt = rs.getTimestamp("created_at").toInstant
+    )
+
+class DailyTargetRepository(conn: Connection):
+
+  def setTarget(userId: UUID, targetDate: LocalDate, calorieTarget: Int): Unit =
+    findTarget(userId, targetDate) match
+      case Some(_) =>
+        val sql = "UPDATE daily_targets SET calorie_target = ? WHERE user_id = ? AND target_date = ?"
+        Using.resource(conn.prepareStatement(sql)) { ps =>
+          ps.setInt(1, calorieTarget)
+          ps.setObject(2, userId)
+          ps.setDate(3, SqlDate.valueOf(targetDate))
+          ps.executeUpdate()
+        }
+      case None =>
+        val sql = "INSERT INTO daily_targets (user_id, target_date, calorie_target) VALUES (?, ?, ?)"
+        Using.resource(conn.prepareStatement(sql)) { ps =>
+          ps.setObject(1, userId)
+          ps.setDate(2, SqlDate.valueOf(targetDate))
+          ps.setInt(3, calorieTarget)
+          ps.executeUpdate()
+        }
+
+  def findTarget(userId: UUID, targetDate: LocalDate): Option[DailyTarget] =
+    val sql = "SELECT user_id, target_date, calorie_target FROM daily_targets WHERE user_id = ? AND target_date = ?"
+    Using.resource(conn.prepareStatement(sql)) { ps =>
+      ps.setObject(1, userId)
+      ps.setDate(2, SqlDate.valueOf(targetDate))
+      Using.resource(ps.executeQuery()) { rs =>
+        if rs.next() then
+          Some(
+            DailyTarget(
+              userId = rs.getObject("user_id", classOf[UUID]),
+              targetDate = rs.getDate("target_date").toLocalDate,
+              calorieTarget = rs.getInt("calorie_target")
+            )
+          )
+        else None
+      }
+    }
+
+class MealRepository(conn: Connection):
+
+  def insertMeal(meal: Meal): Unit =
+    val mealSql =
+      """INSERT INTO meals (id, user_id, logged_at, meal_date, description, image_path, total_calories, ai_explanation)
+        |VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      """.stripMargin
+    Using.resource(conn.prepareStatement(mealSql)) { ps =>
+      ps.setObject(1, meal.id)
+      ps.setObject(2, meal.userId)
+      ps.setTimestamp(3, Timestamp.from(meal.loggedAt))
+      ps.setDate(4, SqlDate.valueOf(meal.mealDate))
+      ps.setString(5, meal.description)
+      ps.setString(6, meal.imagePath.orNull)
+      ps.setInt(7, meal.totalCalories)
+      ps.setString(8, meal.aiExplanation)
+      ps.executeUpdate()
+    }
+
+    if meal.items.nonEmpty then
+      val itemSql = "INSERT INTO meal_items (id, meal_id, item_name, estimated_calories) VALUES (?, ?, ?, ?)"
+      Using.resource(conn.prepareStatement(itemSql)) { ps =>
+        for item <- meal.items do
+          ps.setObject(1, item.id)
+          ps.setObject(2, meal.id)
+          ps.setString(3, item.itemName)
+          ps.setInt(4, item.estimatedCalories)
+          ps.addBatch()
+        ps.executeBatch()
+      }
+
+  def findMealsByDate(userId: UUID, mealDate: LocalDate): List[Meal] =
+    val mealSql =
+      """SELECT id, user_id, logged_at, meal_date, description, image_path, total_calories, ai_explanation
+        |FROM meals
+        |WHERE user_id = ? AND meal_date = ?
+        |ORDER BY logged_at ASC
+      """.stripMargin
+
+    val meals = collection.mutable.ListBuffer[Meal]()
+    Using.resource(conn.prepareStatement(mealSql)) { ps =>
+      ps.setObject(1, userId)
+      ps.setDate(2, SqlDate.valueOf(mealDate))
+      Using.resource(ps.executeQuery()) { rs =>
+        while rs.next() do
+          val mealId = rs.getObject("id", classOf[UUID])
+          val items  = findItemsForMeal(mealId)
+          meals += Meal(
+            id = mealId,
+            userId = rs.getObject("user_id", classOf[UUID]),
+            loggedAt = rs.getTimestamp("logged_at").toInstant,
+            mealDate = rs.getDate("meal_date").toLocalDate,
+            description = rs.getString("description"),
+            imagePath = Option(rs.getString("image_path")),
+            totalCalories = rs.getInt("total_calories"),
+            aiExplanation = rs.getString("ai_explanation"),
+            items = items
+          )
+      }
+    }
+    meals.toList
+
+  def deleteMeal(userId: UUID, mealId: UUID): Boolean =
+    val sql = "DELETE FROM meals WHERE id = ? AND user_id = ?"
+    Using.resource(conn.prepareStatement(sql)) { ps =>
+      ps.setObject(1, mealId)
+      ps.setObject(2, userId)
+      ps.executeUpdate() > 0
+    }
+
+  private def findItemsForMeal(mealId: UUID): List[MealItem] =
+    val itemSql = "SELECT id, meal_id, item_name, estimated_calories FROM meal_items WHERE meal_id = ?"
+    val items   = collection.mutable.ListBuffer[MealItem]()
+    Using.resource(conn.prepareStatement(itemSql)) { ps =>
+      ps.setObject(1, mealId)
+      Using.resource(ps.executeQuery()) { rs =>
+        while rs.next() do
+          items += MealItem(
+            id = rs.getObject("id", classOf[UUID]),
+            mealId = rs.getObject("meal_id", classOf[UUID]),
+            itemName = rs.getString("item_name"),
+            estimatedCalories = rs.getInt("estimated_calories")
+          )
+      }
+    }
+    items.toList
+
+class DailyWeightRepository(conn: Connection):
+
+  def recordWeight(weight: DailyWeight): Unit =
+    val checkSql = "SELECT user_id FROM daily_weights WHERE user_id = ? AND weigh_date = ?"
+    val exists = Using.resource(conn.prepareStatement(checkSql)) { ps =>
+      ps.setObject(1, weight.userId)
+      ps.setDate(2, SqlDate.valueOf(weight.weighDate))
+      Using.resource(ps.executeQuery())(_.next())
+    }
+
+    if exists then
+      val sql = "UPDATE daily_weights SET weight = ?, unit = ? WHERE user_id = ? AND weigh_date = ?"
+      Using.resource(conn.prepareStatement(sql)) { ps =>
+        ps.setBigDecimal(1, weight.weight.bigDecimal)
+        ps.setString(2, weight.unit)
+        ps.setObject(3, weight.userId)
+        ps.setDate(4, SqlDate.valueOf(weight.weighDate))
+        ps.executeUpdate()
+      }
+    else
+      val sql = "INSERT INTO daily_weights (user_id, weigh_date, weight, unit) VALUES (?, ?, ?, ?)"
+      Using.resource(conn.prepareStatement(sql)) { ps =>
+        ps.setObject(1, weight.userId)
+        ps.setDate(2, SqlDate.valueOf(weight.weighDate))
+        ps.setBigDecimal(3, weight.weight.bigDecimal)
+        ps.setString(4, weight.unit)
+        ps.executeUpdate()
+      }
+
+  def findWeightsInRange(userId: UUID, fromDate: LocalDate, toDate: LocalDate): List[DailyWeight] =
+    val sql =
+      """SELECT user_id, weigh_date, weight, unit
+        |FROM daily_weights
+        |WHERE user_id = ? AND weigh_date >= ? AND weigh_date <= ?
+        |ORDER BY weigh_date ASC
+      """.stripMargin
+    val weights = collection.mutable.ListBuffer[DailyWeight]()
+    Using.resource(conn.prepareStatement(sql)) { ps =>
+      ps.setObject(1, userId)
+      ps.setDate(2, SqlDate.valueOf(fromDate))
+      ps.setDate(3, SqlDate.valueOf(toDate))
+      Using.resource(ps.executeQuery()) { rs =>
+        while rs.next() do
+          weights += DailyWeight(
+            userId = rs.getObject("user_id", classOf[UUID]),
+            weighDate = rs.getDate("weigh_date").toLocalDate,
+            weight = BigDecimal(rs.getBigDecimal("weight")),
+            unit = rs.getString("unit")
+          )
+      }
+    }
+    weights.toList
