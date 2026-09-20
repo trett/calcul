@@ -9,7 +9,7 @@ import com.calcul.model.*
 object AppState:
 
   val currentUser: Var[Option[UserSummary]]          = Var(None)
-  val selectedDate: Var[LocalDate]                   = Var(LocalDate.now())
+  val selectedDate: Var[LocalDate]                   = Var(DateUtils.today())
   val theme: Var[String]                             = Var(loadSavedTheme())
   val activeTab: Var[String]                         = Var("dashboard")
   val notification: Var[Option[(String, String)]]    = Var(None)
@@ -55,7 +55,7 @@ object AppState:
     setDate(selectedDate.now().plusDays(1))
 
   def setToday(): Unit =
-    setDate(LocalDate.now())
+    setDate(DateUtils.today())
 
   def loadCurrentUser(): Unit =
     ApiClient
