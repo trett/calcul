@@ -10,7 +10,7 @@
 - [x] Task: PostgreSQL Schema Script & Database Connectivity (f268870)
     - [x] Write integration test verifying connection to PostgreSQL and execution of `schema.sql`
     - [x] Implement `schema.sql` and direct JDBC connection pool configuration
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Project Scaffolding & Multi-Module Build Setup' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Project Scaffolding & Multi-Module Build Setup' (Protocol in workflow.md)
 
 ## Phase 2: Domain Modeling, Shared Endpoints & Direct-Style Backend
 - [ ] Task: Shared Domain Models & JSON Codecs
