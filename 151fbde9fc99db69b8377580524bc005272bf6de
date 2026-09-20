@@ -1,0 +1,7 @@
+Task: Shared Tapir API Endpoint Declarations
+Summary: Declared all 12 type-safe REST API endpoints using Tapir and uPickle in the cross-compiled shared module.
+Files:
+- shared/src/main/scala/com/calcul/api/Endpoints.scala: Definitions for Auth, Meals/AI analysis, Calories/Targets, and Weight endpoints
+- shared/src/test/scala/com/calcul/api/EndpointsSuite.scala: Test suite verifying paths, query params, and schemas
+- .gitignore: Added metals.sbt
+Why: Establishes a shared contract between client and server, guaranteeing type safety and OpenAPI documentation compatibility across both JVM and JS platforms.
