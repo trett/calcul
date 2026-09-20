@@ -24,7 +24,7 @@
     - [x] Implement direct-style JDBC repositories and Netty/Ox HTTP server routes in `backend` module
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Domain Modeling, Shared Endpoints & Direct-Style Backend' (Protocol in workflow.md)
 
-## Phase 3: AI Service (sttp-ai + Gemini Flash) & Multimodal Meal Ingestion
+## Phase 3: AI Service (sttp-ai + Gemini Flash) & Multimodal Meal Ingestion (Checkpoint: 023d0d4)
 - [x] Task: Gemini Flash Client via sttp-ai (141a2df)
     - [x] Write unit tests mocking Gemini Flash response parsing for food items, calorie estimation, and explanation
     - [x] Implement direct-style `GeminiService` using `sttp-ai` with structured JSON output parsing
