@@ -1,0 +1,7 @@
+Task: Daily Weight Tracking Service
+Summary: Implemented WeightService and endpoint bindings for logging daily weigh-ins and querying weight trend history within date ranges.
+Files:
+- backend/src/main/scala/com/calcul/server/WeightService.scala: Weight persistence and query service
+- backend/src/main/scala/com/calcul/server/ServerRoutes.scala: Tapir route bindings for POST /api/weights and GET /api/weights
+- backend/src/test/scala/com/calcul/server/WeightTrackingSuite.scala: Unit test verifying weight recording and chronological date-range filtering
+Why: Enables users to monitor body weight progression concurrently with daily caloric intake.
