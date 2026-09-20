@@ -25,9 +25,9 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Domain Modeling, Shared Endpoints & Direct-Style Backend' (Protocol in workflow.md)
 
 ## Phase 3: AI Service (sttp-ai + Gemini Flash) & Multimodal Meal Ingestion
-- [ ] Task: Gemini Flash Client via sttp-ai
-    - [ ] Write unit tests mocking Gemini Flash response parsing for food items, calorie estimation, and explanation
-    - [ ] Implement direct-style `GeminiService` using `sttp-ai` with structured JSON output parsing
+- [x] Task: Gemini Flash Client via sttp-ai (141a2df)
+    - [x] Write unit tests mocking Gemini Flash response parsing for food items, calorie estimation, and explanation
+    - [x] Implement direct-style `GeminiService` using `sttp-ai` with structured JSON output parsing
 - [ ] Task: Meal Logging & Analysis Endpoints
     - [ ] Write integration tests for `POST /api/meals/analyze` and `POST /api/meals`
     - [ ] Implement backend endpoint logic for multimodal image upload, description analysis, and meal persistence
