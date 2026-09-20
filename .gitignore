@@ -1,0 +1,15 @@
+# sbt & Scala
+target/
+project/target/
+project/project/
+.bsp/
+.metals/
+.bloop/
+.idea/
+*.class
+
+# Node / JS
+node_modules/
+
+# OS
+.DS_Store
