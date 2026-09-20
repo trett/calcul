@@ -4,5 +4,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [~] **Track: Build AI Calorie & Weight Tracker Core Application**
+- [x] **Track: Build AI Calorie & Weight Tracker Core Application**
   *Link: [./tracks/calorie_tracker_core_20260920/](./tracks/calorie_tracker_core_20260920/)*
