@@ -3,14 +3,10 @@ package com.calcul
 import com.raquo.laminar.api.L.*
 import com.raquo.airstream.state.Var
 import scala.concurrent.ExecutionContext.Implicits.global
-import java.time.format.DateTimeFormatter
-import java.time.ZoneId
 import com.calcul.ShoelaceDSL.*
 import com.calcul.model.SetTargetRequest
 
 object DashboardView:
-
-  private val timeFormatter = DateTimeFormatter.ofPattern("HH:mm").withZone(ZoneId.systemDefault())
 
   def apply(): HtmlElement =
     val targetModalOpen = Var(false)
@@ -219,7 +215,7 @@ object DashboardView:
                       span(styleAttr := "font-weight: 600; font-size: 1rem;", meal.description),
                       span(
                         styleAttr := "font-size: 0.8rem; color: var(--sl-color-neutral-500);",
-                        s"• ${timeFormatter.format(meal.loggedAt)}"
+                        s"• ${DateUtils.formatTime(meal.loggedAt)}"
                       )
                     ),
                     slBadge(

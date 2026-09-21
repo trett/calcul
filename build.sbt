@@ -75,7 +75,7 @@ lazy val backend = (project in file("backend"))
       "-H:IncludeResources=.*schema\\.sql$",
       "-H:IncludeResources=.*webapp/.*",
       "--initialize-at-build-time=org.slf4j",
-      "--initialize-at-run-time=io.netty.channel.epoll.Epoll,io.netty.channel.epoll.Native,io.netty.channel.epoll.EpollEventLoop,io.netty.channel.epoll.EpollEventLoopGroup,io.netty.channel.kqueue.KQueue,io.netty.channel.kqueue.Native,io.netty.channel.kqueue.KQueueEventLoopGroup"
+      "--initialize-at-run-time=io.netty.channel.epoll,io.netty.channel.kqueue,io.netty.channel.unix,io.netty.channel.uring,io.netty.channel.kqueue.KQueueEventArray,io.netty.channel.kqueue.Native,io.netty.channel.kqueue.BsdSocket"
     ),
     // Docker Settings
     Docker / packageName := "calcul-backend",

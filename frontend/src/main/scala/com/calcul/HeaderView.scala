@@ -39,7 +39,7 @@ object HeaderView:
           slSize    := "small",
           slVariant := "default",
           child.text <-- AppState.selectedDate.signal.map { d =>
-            if d == LocalDate.now() then s"Today, $d" else d.toString
+            if d == DateUtils.today() then s"Today, $d" else d.toString
           },
           onClick --> (_ => AppState.setToday())
         ),
