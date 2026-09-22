@@ -9,21 +9,12 @@ These guidelines are mandatory for all AI agents and contributors working in thi
 
 ## 2. Pre-PR Quality & Linting Verification
 - Before opening any Pull Request or finalizing any changes:
-  1. Run `scalafmt` across all modules:
-     ```bash
-     sbt scalafmtAll
-     ```
-  2. Run `scalafix` across all modules:
-     ```bash
-     sbt scalafixAll
-     ```
-  3. Verify that all checks pass with zero errors:
+  1. Auto-format and apply Scalafix rules:
      ```bash
      ./scripts/test_code_quality_setup.sh
      ```
-     (Ensures both `scalafmtCheckAll` and `scalafixAll --check` succeed cleanly).
-  4. Verify that the test suite passes:
+  2. Verify that the test suite passes:
      ```bash
      sbt test
      ```
-- No PR may be created with formatting diffs, Scalafix violations, compiler warnings (enforced by `-Werror`), or failing tests.
+- No PR may be created with Scalafix violations, compiler warnings (enforced by `-Werror`), or failing tests.

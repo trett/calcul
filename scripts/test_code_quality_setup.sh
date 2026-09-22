@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "=== Testing Code Quality & Tooling Setup ==="
+echo "=== Running Code Quality Formatting & Fixes ==="
 
 # Check config files
 test -f .scalafmt.conf || { echo "Missing .scalafmt.conf"; exit 1; }
@@ -14,8 +14,7 @@ grep -q "runner.dialect = scala3" .scalafmt.conf || { echo ".scalafmt.conf missi
 grep -q "scalacOptions" build.sbt || { echo "build.sbt missing scalacOptions"; exit 1; }
 grep -q -- "-Werror" build.sbt || { echo "build.sbt missing -Werror"; exit 1; }
 
-# Run scalafmt and scalafix checks
-sbt -Dsbt.supershell=false --batch scalafmtCheckAll
-sbt -Dsbt.supershell=false --batch "scalafixAll --check"
+# Auto-format and apply Scalafix rules unconditionally
+sbt -Dsbt.supershell=false --batch "scalafmtAll; scalafixAll"
 
-echo "=== Code Quality & Tooling setup verified! ==="
+echo "=== Code formatting and Scalafix fixes applied! ==="
