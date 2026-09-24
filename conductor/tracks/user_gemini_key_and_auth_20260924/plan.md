@@ -1,0 +1,55 @@
+# Implementation Plan: User-Provided Gemini API Key & Authentication Gating
+
+## Phase 1: Database Schema & Secure Key Storage
+- [ ] Task: Database Schema Update
+    - [ ] Write Tests for schema initialization and user table columns in TestDbInit
+    - [ ] Add `encrypted_gemini_api_key TEXT` column to `schema.sql`
+- [ ] Task: AES-256-GCM Encryption Utility
+    - [ ] Write Tests for `CryptoUtilsSuite` verifying encryption, decryption, authentication tag, and invalid key handling
+    - [ ] Implement `CryptoUtils` using Java standard library `javax.crypto` (AES-GCM, zero-reflection)
+- [ ] Task: User Repository Key Operations
+    - [ ] Write Tests in `RepositorySuite` for updating, retrieving, and clearing user's encrypted Gemini API key
+    - [ ] Implement `updateGeminiKey` and `clearGeminiKey` in `UserRepository`
+- [ ] Task: Conductor - User Manual Verification 'Phase 1: Database Schema & Secure Key Storage' (Protocol in workflow.md)
+
+## Phase 2: Key Validation, Gemini Service & API Endpoints
+- [ ] Task: Shared Domain Models & Tapir Endpoints
+    - [ ] Write Tests for DTO JSON serialization (`GeminiKeyStatus`, `SaveGeminiKeyRequest`) in `DomainModelsSuite`
+    - [ ] Add shared models and declare Tapir endpoints for `GET /api/user/settings`, `POST /api/user/settings/gemini-key`, and `DELETE /api/user/settings/gemini-key` in `Endpoints.scala`
+- [ ] Task: Gemini Key Validation & Per-User Gemini Service
+    - [ ] Write Tests in `GeminiServiceSuite` for key validation call and user-specific key execution
+    - [ ] Implement `validateKey` and update `GeminiService.analyzeMeal` to decrypt and use the caller's key
+- [ ] Task: Server Routes & Authentication Enforcement
+    - [ ] Write Tests in `ServerRoutesSuite` asserting 401 on unauthenticated access and successful key management
+    - [ ] Implement route handlers in `ServerRoutes.scala` for settings endpoints and connect to `UserRepository` & `GeminiService`
+- [ ] Task: Conductor - User Manual Verification 'Phase 2: Key Validation, Gemini Service & API Endpoints' (Protocol in workflow.md)
+
+## Phase 3: Frontend Authentication Gating & Landing Screen
+- [ ] Task: Public Landing Screen Component
+    - [ ] Write Tests / component scaffolding for `LandingView`
+    - [ ] Implement `LandingView` with application branding, features overview, and Google Login button
+- [ ] Task: AppShell Authentication Gate
+    - [ ] Write Tests for `AppState` authentication status signals and routing
+    - [ ] Update `AppShell.scala` to conditionally render `LandingView` when unauthenticated and full application shell when logged in
+- [ ] Task: Conductor - User Manual Verification 'Phase 3: Frontend Authentication Gating & Landing Screen' (Protocol in workflow.md)
+
+## Phase 4: Frontend Settings View & Gemini Key Warnings
+- [ ] Task: Missing Key Warning Banner
+    - [ ] Write Tests for warning banner visibility based on `AppState.currentUser` key status
+    - [ ] Implement warning banner in `HeaderView` / `AppShell` with direct navigation to Settings
+- [ ] Task: User Settings View & Modal
+    - [ ] Write Tests for settings view state and API key validation trigger
+    - [ ] Implement `SettingsView` dialog allowing users to view key status, input/test/save a new key, and remove the key
+- [ ] Task: AI Meal Analysis Gating
+    - [ ] Write Tests for meal analysis prevention when key is unconfigured
+    - [ ] Update `MealLogView` / `DashboardView` to prompt the user to configure their key if attempting analysis without one
+- [ ] Task: Conductor - User Manual Verification 'Phase 4: Frontend Settings View & Gemini Key Warnings' (Protocol in workflow.md)
+
+## Phase 5: End-to-End Verification & Quality Polish
+- [ ] Task: System Integration Verification
+    - [ ] Write and run end-to-end integration tests verifying unauthenticated gating, key save, and meal analysis with user key
+    - [ ] Run complete test suite via `sbt test` (verifying all tests pass with Testcontainers PostgreSQL)
+- [ ] Task: Code Quality & Formatting
+    - [ ] Run `./scripts/test_code_quality_setup.sh` to auto-format and apply Scalafix rules
+    - [ ] Verify zero warnings/errors under `-Werror`
+- [ ] Task: Conductor - User Manual Verification 'Phase 5: End-to-End Verification & Quality Polish' (Protocol in workflow.md)
