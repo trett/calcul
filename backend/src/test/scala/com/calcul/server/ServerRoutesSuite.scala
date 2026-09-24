@@ -29,6 +29,9 @@ class ServerRoutesSuite extends FunSuite:
 
       val deleteResult = routes.deleteGeminiKeyRoute.logic(sttp.monad.IdentityMonad)(())(None)
       assertEquals(deleteResult, Left((sttp.model.StatusCode.Unauthorized, "Unauthorized")))
+
+      val meResult = routes.meRoute.logic(sttp.monad.IdentityMonad)(())(None)
+      assertEquals(meResult, Left((sttp.model.StatusCode.Unauthorized, "Unauthorized")))
     finally conn.close()
   }
 

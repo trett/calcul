@@ -23,11 +23,12 @@ object Endpoints:
       .out(stringBody)
       .summary("Google OAuth2 callback exchange")
 
-  val meEndpoint: PublicEndpoint[Option[String], Unit, UserSummary, Any] =
+  val meEndpoint: PublicEndpoint[Option[String], (StatusCode, String), UserSummary, Any] =
     endpoint.get
       .in("api" / "auth" / "me")
       .in(cookie[Option[String]]("session"))
       .out(jsonBody[UserSummary])
+      .errorOut(statusCode.and(stringBody))
       .summary("Get current authenticated user")
 
   val logoutEndpoint: PublicEndpoint[Unit, Unit, (Option[String], String), Any] =

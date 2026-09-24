@@ -75,21 +75,14 @@ class ServerRoutes(
     }
 
   val meRoute =
-    Endpoints.meEndpoint.serverLogicSuccess[Identity] { sessionCookieOpt =>
-      def toSummary(u: User): UserSummary =
+    Endpoints.meEndpoint.serverLogic[Identity] { sessionCookieOpt =>
+      authenticate(sessionCookieOpt).map { u =>
         val hasKey = u.encryptedGeminiApiKey.isDefined
         val masked = u.encryptedGeminiApiKey.flatMap { enc =>
           CryptoUtils.decrypt(enc, authConfig.sessionSecret).toOption.map(CryptoUtils.maskKey)
         }
         UserSummary(u.id, u.email, u.name, u.pictureUrl, hasKey, masked)
-
-      val userOpt = sessionCookieOpt.flatMap(authService.verifySessionToken).flatMap(userRepo.findById)
-      userOpt match
-        case Some(u) => toSummary(u)
-        case None =>
-          userRepo.findById(defaultUserId) match
-            case Some(u) => toSummary(u)
-            case None    => UserSummary(defaultUserId, "demo@example.com", "Demo User", None, false, None)
+      }
     }
 
   val logoutRoute: ServerEndpoint[Any, Identity] =
