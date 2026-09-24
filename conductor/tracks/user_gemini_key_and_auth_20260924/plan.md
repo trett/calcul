@@ -25,9 +25,9 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Key Validation, Gemini Service & API Endpoints' (Protocol in workflow.md)
 
 ## Phase 3: Frontend Authentication Gating & Landing Screen
-- [ ] Task: Public Landing Screen Component
-    - [ ] Write Tests / component scaffolding for `LandingView`
-    - [ ] Implement `LandingView` with application branding, features overview, and Google Login button
+- [x] Task: Public Landing Screen Component
+    - [x] Write Tests / component scaffolding for `LandingView`
+    - [x] Implement `LandingView` with application branding, features overview, and Google Login button
 - [ ] Task: AppShell Authentication Gate
     - [ ] Write Tests for `AppState` authentication status signals and routing
     - [ ] Update `AppShell.scala` to conditionally render `LandingView` when unauthenticated and full application shell when logged in
