@@ -10,7 +10,7 @@
 - [x] Task: User Repository Key Operations
     - [x] Write Tests in `RepositorySuite` for updating, retrieving, and clearing user's encrypted Gemini API key
     - [x] Implement `updateGeminiKey` and `clearGeminiKey` in `UserRepository`
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Database Schema & Secure Key Storage' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Database Schema & Secure Key Storage' (Protocol in workflow.md)
 
 ## Phase 2: Key Validation, Gemini Service & API Endpoints
 - [ ] Task: Shared Domain Models & Tapir Endpoints
