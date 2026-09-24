@@ -34,7 +34,17 @@ object AppShell:
       mainTag(
         cls       := "app-content",
         styleAttr := "flex: 1; max-width: 1100px; width: 100%; margin: 0 auto; padding: 1.5rem 1rem;",
-        contentView
+        child <-- AppState.currentUser.signal.combineWith(AppState.isAuthChecking.signal).map {
+          case (None, true) =>
+            div(
+              styleAttr := "display: flex; justify-content: center; align-items: center; min-height: 400px;",
+              slSpinner(styleAttr := "font-size: 3rem;")
+            )
+          case (None, false) =>
+            LandingView()
+          case (Some(_), _) =>
+            contentView
+        }
       ),
 
       // Footer

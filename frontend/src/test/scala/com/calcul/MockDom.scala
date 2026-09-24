@@ -15,7 +15,7 @@ object MockDom:
               return {
                 tagName: tag.toUpperCase(),
                 nodeType: 1,
-                style: {},
+                style: { setProperty: function(k, v){ this[k] = v; }, removeProperty: function(k){ delete this[k]; } },
                 classList: { add: function(){}, remove: function(){}, contains: function(){ return false; } },
                 setAttribute: function(k, v){ attrs[k] = v; },
                 getAttribute: function(k){ return attrs[k] || null; },
@@ -38,12 +38,18 @@ object MockDom:
             createDocumentFragment: function(){ return { nodeType: 11, appendChild: function(c){ return c; } }; }
           };
           doc.createElementNS = function(ns, tag){ return doc.createElement(tag); };
+          doc.documentElement = doc.createElement("html");
           globalThis.document = doc;
           global.document = doc;
-          if (typeof globalThis.window === 'undefined') {
-            globalThis.window = { document: doc, location: { href: '' } };
-            global.window = globalThis.window;
-          }
+          const storage = {};
+          const localStorage = {
+            getItem: function(k) { return storage[k] || null; },
+            setItem: function(k, v) { storage[k] = String(v); },
+            removeItem: function(k) { delete storage[k]; }
+          };
+          const win = { document: doc, location: { href: '' }, localStorage: localStorage };
+          globalThis.window = win;
+          global.window = win;
         }
       """
     )

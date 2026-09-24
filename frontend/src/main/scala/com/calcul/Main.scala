@@ -9,7 +9,6 @@ object Main:
     val init = () =>
       AppState.initTheme()
       AppState.loadCurrentUser()
-      AppState.loadDailyData()
 
       Option(dom.document.getElementById("app")).foreach { root =>
         val content = div(

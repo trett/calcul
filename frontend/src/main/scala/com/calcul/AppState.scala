@@ -17,6 +17,7 @@ object AppState:
   val meals: Var[List[Meal]]                         = Var(Nil)
   val weights: Var[List[DailyWeight]]                = Var(Nil)
   val isLoading: Var[Boolean]                        = Var(false)
+  val isAuthChecking: Var[Boolean]                   = Var(true)
 
   private def loadSavedTheme(): String =
     Option(dom.window.localStorage.getItem("caltrack_theme")).filter(_.nonEmpty).getOrElse("light")
@@ -58,10 +59,13 @@ object AppState:
     setDate(DateUtils.today())
 
   def loadCurrentUser(): Unit =
+    isAuthChecking.set(true)
     ApiClient
       .getCurrentUser()
       .foreach: userOpt =>
         currentUser.set(userOpt)
+        isAuthChecking.set(false)
+        if userOpt.isDefined then loadDailyData()
 
   def loadDailyData(): Unit =
     val d = selectedDate.now()

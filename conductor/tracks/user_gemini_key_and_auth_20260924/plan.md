@@ -28,9 +28,9 @@
 - [x] Task: Public Landing Screen Component
     - [x] Write Tests / component scaffolding for `LandingView`
     - [x] Implement `LandingView` with application branding, features overview, and Google Login button
-- [ ] Task: AppShell Authentication Gate
-    - [ ] Write Tests for `AppState` authentication status signals and routing
-    - [ ] Update `AppShell.scala` to conditionally render `LandingView` when unauthenticated and full application shell when logged in
+- [x] Task: AppShell Authentication Gate
+    - [x] Write Tests for `AppState` authentication status signals and routing
+    - [x] Update `AppShell.scala` to conditionally render `LandingView` when unauthenticated and full application shell when logged in
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Frontend Authentication Gating & Landing Screen' (Protocol in workflow.md)
 
 ## Phase 4: Frontend Settings View & Gemini Key Warnings
