@@ -40,9 +40,9 @@
 - [x] Task: User Settings View & Modal
     - [x] Write Tests for settings view state and API key validation trigger
     - [x] Implement `SettingsView` dialog allowing users to view key status, input/test/save a new key, and remove the key
-- [ ] Task: AI Meal Analysis Gating
-    - [ ] Write Tests for meal analysis prevention when key is unconfigured
-    - [ ] Update `MealLogView` / `DashboardView` to prompt the user to configure their key if attempting analysis without one
+- [x] Task: AI Meal Analysis Gating
+    - [x] Write Tests for meal analysis prevention when key is unconfigured
+    - [x] Update `MealLogView` / `DashboardView` to prompt the user to configure their key if attempting analysis without one
 - [ ] Task: Conductor - User Manual Verification 'Phase 4: Frontend Settings View & Gemini Key Warnings' (Protocol in workflow.md)
 
 ## Phase 5: End-to-End Verification & Quality Polish
