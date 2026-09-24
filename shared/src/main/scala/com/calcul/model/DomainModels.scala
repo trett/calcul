@@ -19,7 +19,18 @@ final case class UserSummary(
     id: UUID,
     email: String,
     name: String,
-    pictureUrl: Option[String]
+    pictureUrl: Option[String],
+    hasGeminiKey: Boolean = false,
+    maskedGeminiKey: Option[String] = None
+) derives ReadWriter
+
+final case class GeminiKeyStatus(
+    hasKey: Boolean,
+    maskedKey: Option[String]
+) derives ReadWriter
+
+final case class SaveGeminiKeyRequest(
+    apiKey: String
 ) derives ReadWriter
 
 final case class DailyTarget(

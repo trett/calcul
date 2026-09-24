@@ -100,3 +100,27 @@ class DomainModelsSuite extends FunSuite:
     val decoded = read[MealAnalysisResponse](json)
     assertEquals(decoded, analysis)
   }
+
+  test("UserSummary with Gemini key info round-trip JSON serialization") {
+    val summary = UserSummary(
+      id = UUID.fromString("11111111-1111-1111-1111-111111111111"),
+      email = "user@example.com",
+      name = "Test User",
+      pictureUrl = Some("https://example.com/avatar.jpg"),
+      hasGeminiKey = true,
+      maskedGeminiKey = Some("••••••••••••1234")
+    )
+    val json    = write(summary)
+    val decoded = read[UserSummary](json)
+    assertEquals(decoded, summary)
+  }
+
+  test("GeminiKeyStatus and SaveGeminiKeyRequest round-trip JSON serialization") {
+    val status     = GeminiKeyStatus(hasKey = true, maskedKey = Some("••••••••••••5678"))
+    val jsonStatus = write(status)
+    assertEquals(read[GeminiKeyStatus](jsonStatus), status)
+
+    val req     = SaveGeminiKeyRequest(apiKey = "AIzaSyD-sample-key")
+    val jsonReq = write(req)
+    assertEquals(read[SaveGeminiKeyRequest](jsonReq), req)
+  }

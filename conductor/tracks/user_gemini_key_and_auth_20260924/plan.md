@@ -13,9 +13,9 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Database Schema & Secure Key Storage' (Protocol in workflow.md)
 
 ## Phase 2: Key Validation, Gemini Service & API Endpoints
-- [ ] Task: Shared Domain Models & Tapir Endpoints
-    - [ ] Write Tests for DTO JSON serialization (`GeminiKeyStatus`, `SaveGeminiKeyRequest`) in `DomainModelsSuite`
-    - [ ] Add shared models and declare Tapir endpoints for `GET /api/user/settings`, `POST /api/user/settings/gemini-key`, and `DELETE /api/user/settings/gemini-key` in `Endpoints.scala`
+- [x] Task: Shared Domain Models & Tapir Endpoints
+    - [x] Write Tests for DTO JSON serialization (`GeminiKeyStatus`, `SaveGeminiKeyRequest`) in `DomainModelsSuite`
+    - [x] Add shared models and declare Tapir endpoints for `GET /api/user/settings`, `POST /api/user/settings/gemini-key`, and `DELETE /api/user/settings/gemini-key` in `Endpoints.scala`
 - [ ] Task: Gemini Key Validation & Per-User Gemini Service
     - [ ] Write Tests in `GeminiServiceSuite` for key validation call and user-specific key execution
     - [ ] Implement `validateKey` and update `GeminiService.analyzeMeal` to decrypt and use the caller's key

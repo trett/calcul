@@ -1,5 +1,6 @@
 package com.calcul.api
 
+import sttp.model.StatusCode
 import sttp.tapir.*
 import sttp.tapir.generic.auto.*
 import sttp.tapir.json.upickle.*
@@ -95,6 +96,33 @@ object Endpoints:
       .out(jsonBody[List[DailyWeight]])
       .summary("Get weight entries in date range")
 
+  // --- User Settings Endpoints ---
+  val getGeminiKeyStatusEndpoint: PublicEndpoint[Option[String], (StatusCode, String), GeminiKeyStatus, Any] =
+    endpoint.get
+      .in("api" / "user" / "settings" / "gemini-key")
+      .in(cookie[Option[String]]("session"))
+      .out(jsonBody[GeminiKeyStatus])
+      .errorOut(statusCode.and(stringBody))
+      .summary("Get current Gemini API key status for authenticated user")
+
+  val saveGeminiKeyEndpoint
+      : PublicEndpoint[(Option[String], SaveGeminiKeyRequest), (StatusCode, String), GeminiKeyStatus, Any] =
+    endpoint.post
+      .in("api" / "user" / "settings" / "gemini-key")
+      .in(cookie[Option[String]]("session"))
+      .in(jsonBody[SaveGeminiKeyRequest])
+      .out(jsonBody[GeminiKeyStatus])
+      .errorOut(statusCode.and(stringBody))
+      .summary("Validate and save Gemini API key for authenticated user")
+
+  val deleteGeminiKeyEndpoint: PublicEndpoint[Option[String], (StatusCode, String), String, Any] =
+    endpoint.delete
+      .in("api" / "user" / "settings" / "gemini-key")
+      .in(cookie[Option[String]]("session"))
+      .out(stringBody)
+      .errorOut(statusCode.and(stringBody))
+      .summary("Delete saved Gemini API key for authenticated user")
+
   val allEndpoints: List[AnyEndpoint] = List(
     loginEndpoint,
     callbackEndpoint,
@@ -107,5 +135,8 @@ object Endpoints:
     getDailyCaloriesEndpoint,
     setDailyTargetEndpoint,
     recordWeightEndpoint,
-    getWeightsEndpoint
+    getWeightsEndpoint,
+    getGeminiKeyStatusEndpoint,
+    saveGeminiKeyEndpoint,
+    deleteGeminiKeyEndpoint
   )
