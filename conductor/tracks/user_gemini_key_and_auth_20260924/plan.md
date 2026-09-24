@@ -4,9 +4,9 @@
 - [x] Task: Database Schema Update
     - [x] Write Tests for schema initialization and user table columns in TestDbInit
     - [x] Add `encrypted_gemini_api_key TEXT` column to `schema.sql`
-- [ ] Task: AES-256-GCM Encryption Utility
-    - [ ] Write Tests for `CryptoUtilsSuite` verifying encryption, decryption, authentication tag, and invalid key handling
-    - [ ] Implement `CryptoUtils` using Java standard library `javax.crypto` (AES-GCM, zero-reflection)
+- [x] Task: AES-256-GCM Encryption Utility
+    - [x] Write Tests for `CryptoUtilsSuite` verifying encryption, decryption, authentication tag, and invalid key handling
+    - [x] Implement `CryptoUtils` using Java standard library `javax.crypto` (AES-GCM, zero-reflection)
 - [ ] Task: User Repository Key Operations
     - [ ] Write Tests in `RepositorySuite` for updating, retrieving, and clearing user's encrypted Gemini API key
     - [ ] Implement `updateGeminiKey` and `clearGeminiKey` in `UserRepository`
