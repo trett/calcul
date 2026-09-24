@@ -34,7 +34,13 @@ The AI Calorie Tracker is an intelligent, low-friction nutrition and body weight
 
 ### 3.4 Security & Access
 - **Google OAuth2 Authentication:** Secure login using Google accounts, backed by Google Cloud OAuth credentials.
+- **Authentication Gating & Landing Screen:** Unauthenticated visitors view a public landing screen introducing the application features and providing Google OAuth login. Application navigation, dashboard, meal logging, and weight tracking are strictly gated behind authentication.
 - **Per-User Isolation:** Each authenticated user has their own private meal records, calorie goals, and weight tracking history stored securely in PostgreSQL.
+- **User-Provided Gemini API Key:** Users supply their own Google Gemini API key in user settings.
+  - **AES-256-GCM Encryption:** Keys are encrypted at rest in PostgreSQL using AES-256-GCM authenticated encryption.
+  - **Pre-Save Validation:** Keys are validated against the Google Gemini API before saving.
+  - **Privacy & Safety:** Unmasked keys are never exposed in responses (only masked form `••••••••••••1234` is shown), and keys can be cleared at any time.
+  - **Feature Gating & Missing Key Warnings:** AI meal analysis is gated on having a configured API key, with persistent warning banners prompting users to configure their key if missing.
 
 ## 4. Delivery & Operational Model
 - **Unified Web Application:** Single backend + frontend application (Scala 3 backend serving the Scala.js + Laminar frontend as static assets).

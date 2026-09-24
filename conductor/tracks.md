@@ -9,5 +9,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [~] **Track: User-provided Gemini API key in settings and authentication gating for app functionality**
+- [x] **Track: User-provided Gemini API key in settings and authentication gating for app functionality**
   *Link: [./tracks/user_gemini_key_and_auth_20260924/](./tracks/user_gemini_key_and_auth_20260924/)*
