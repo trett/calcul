@@ -46,10 +46,10 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 4: Frontend Settings View & Gemini Key Warnings' (Protocol in workflow.md)
 
 ## Phase 5: End-to-End Verification & Quality Polish
-- [ ] Task: System Integration Verification
-    - [ ] Write and run end-to-end integration tests verifying unauthenticated gating, key save, and meal analysis with user key
-    - [ ] Run complete test suite via `sbt test` (verifying all tests pass with Testcontainers PostgreSQL)
-- [ ] Task: Code Quality & Formatting
-    - [ ] Run `./scripts/test_code_quality_setup.sh` to auto-format and apply Scalafix rules
-    - [ ] Verify zero warnings/errors under `-Werror`
+- [x] Task: System Integration Verification
+    - [x] Write and run end-to-end integration tests verifying unauthenticated gating, key save, and meal analysis with user key
+    - [x] Run complete test suite via `sbt test` (verifying all tests pass with Testcontainers PostgreSQL)
+- [x] Task: Code Quality & Formatting
+    - [x] Run `./scripts/test_code_quality_setup.sh` to auto-format and apply Scalafix rules
+    - [x] Verify zero warnings/errors under `-Werror`
 - [ ] Task: Conductor - User Manual Verification 'Phase 5: End-to-End Verification & Quality Polish' (Protocol in workflow.md)
