@@ -7,8 +7,11 @@ CREATE TABLE IF NOT EXISTS users (
     email VARCHAR(255) NOT NULL,
     name VARCHAR(255) NOT NULL,
     picture_url VARCHAR(1024),
+    encrypted_gemini_api_key TEXT,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+ALTER TABLE users ADD COLUMN IF NOT EXISTS encrypted_gemini_api_key TEXT;
 
 CREATE TABLE IF NOT EXISTS daily_targets (
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,

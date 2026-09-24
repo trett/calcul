@@ -16,6 +16,16 @@ class DatabaseSetupSuite extends FunSuite:
     finally conn.close()
   }
 
+  test("users table contains encrypted_gemini_api_key column") {
+    val conn = TestPostgresContainer.newConnection()
+    try
+      TestDbInit.initSchema(conn)
+      val nullStr = Option.empty[String].orNull
+      val rs      = conn.getMetaData.getColumns(nullStr, nullStr, "users", "encrypted_gemini_api_key")
+      assert(rs.next(), "users table should contain encrypted_gemini_api_key column")
+    finally conn.close()
+  }
+
   test("DatabaseConfig creates a valid HikariDataSource configuration") {
     val config = DatabaseConfig(
       jdbcUrl = TestPostgresContainer.jdbcUrl,

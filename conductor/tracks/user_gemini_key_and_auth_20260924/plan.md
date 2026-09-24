@@ -1,9 +1,9 @@
 # Implementation Plan: User-Provided Gemini API Key & Authentication Gating
 
 ## Phase 1: Database Schema & Secure Key Storage
-- [ ] Task: Database Schema Update
-    - [ ] Write Tests for schema initialization and user table columns in TestDbInit
-    - [ ] Add `encrypted_gemini_api_key TEXT` column to `schema.sql`
+- [x] Task: Database Schema Update
+    - [x] Write Tests for schema initialization and user table columns in TestDbInit
+    - [x] Add `encrypted_gemini_api_key TEXT` column to `schema.sql`
 - [ ] Task: AES-256-GCM Encryption Utility
     - [ ] Write Tests for `CryptoUtilsSuite` verifying encryption, decryption, authentication tag, and invalid key handling
     - [ ] Implement `CryptoUtils` using Java standard library `javax.crypto` (AES-GCM, zero-reflection)
