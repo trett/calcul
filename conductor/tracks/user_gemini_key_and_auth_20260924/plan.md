@@ -22,7 +22,7 @@
 - [x] Task: Server Routes & Authentication Enforcement
     - [x] Write Tests in `ServerRoutesSuite` asserting 401 on unauthenticated access and successful key management
     - [x] Implement route handlers in `ServerRoutes.scala` for settings endpoints and connect to `UserRepository` & `GeminiService`
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Key Validation, Gemini Service & API Endpoints' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Key Validation, Gemini Service & API Endpoints' (Protocol in workflow.md)
 
 ## Phase 3: Frontend Authentication Gating & Landing Screen
 - [ ] Task: Public Landing Screen Component
