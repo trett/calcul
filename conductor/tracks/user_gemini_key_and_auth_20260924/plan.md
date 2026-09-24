@@ -37,9 +37,9 @@
 - [x] Task: Missing Key Warning Banner
     - [x] Write Tests for warning banner visibility based on `AppState.currentUser` key status
     - [x] Implement warning banner in `HeaderView` / `AppShell` with direct navigation to Settings
-- [ ] Task: User Settings View & Modal
-    - [ ] Write Tests for settings view state and API key validation trigger
-    - [ ] Implement `SettingsView` dialog allowing users to view key status, input/test/save a new key, and remove the key
+- [x] Task: User Settings View & Modal
+    - [x] Write Tests for settings view state and API key validation trigger
+    - [x] Implement `SettingsView` dialog allowing users to view key status, input/test/save a new key, and remove the key
 - [ ] Task: AI Meal Analysis Gating
     - [ ] Write Tests for meal analysis prevention when key is unconfigured
     - [ ] Update `MealLogView` / `DashboardView` to prompt the user to configure their key if attempting analysis without one

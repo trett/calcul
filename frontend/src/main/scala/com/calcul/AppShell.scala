@@ -87,5 +87,8 @@ object AppShell:
           margin := "0",
           "CalTrack AI — Direct-Style Scala 3 with SoftwareMill Ox, Tapir & Laminar"
         )
-      )
+      ),
+
+      // User Settings Dialog
+      SettingsView()
     )

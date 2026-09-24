@@ -43,3 +43,9 @@ object ShoelaceDSL:
   val slValue: HtmlAttr[String]       = new HtmlAttr[String]("value", StringAsIsCodec)
   val slValueInt: HtmlAttr[Int]       = new HtmlAttr[Int]("value", IntAsStringCodec)
   val slType: HtmlAttr[String]        = new HtmlAttr[String]("type", StringAsIsCodec)
+  val slPasswordToggle: HtmlAttr[Boolean] =
+    new HtmlAttr[Boolean]("password-toggle", BooleanAsAttrPresenceCodec)
+
+  // Common Shoelace Event Props
+  val onSlRequestClose: com.raquo.laminar.keys.EventProp[dom.Event] =
+    new com.raquo.laminar.keys.EventProp[dom.Event]("sl-request-close")
