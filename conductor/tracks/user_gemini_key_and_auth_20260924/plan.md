@@ -34,9 +34,9 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 3: Frontend Authentication Gating & Landing Screen' (Protocol in workflow.md)
 
 ## Phase 4: Frontend Settings View & Gemini Key Warnings
-- [ ] Task: Missing Key Warning Banner
-    - [ ] Write Tests for warning banner visibility based on `AppState.currentUser` key status
-    - [ ] Implement warning banner in `HeaderView` / `AppShell` with direct navigation to Settings
+- [x] Task: Missing Key Warning Banner
+    - [x] Write Tests for warning banner visibility based on `AppState.currentUser` key status
+    - [x] Implement warning banner in `HeaderView` / `AppShell` with direct navigation to Settings
 - [ ] Task: User Settings View & Modal
     - [ ] Write Tests for settings view state and API key validation trigger
     - [ ] Implement `SettingsView` dialog allowing users to view key status, input/test/save a new key, and remove the key

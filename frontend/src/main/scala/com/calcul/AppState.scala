@@ -18,6 +18,7 @@ object AppState:
   val weights: Var[List[DailyWeight]]                = Var(Nil)
   val isLoading: Var[Boolean]                        = Var(false)
   val isAuthChecking: Var[Boolean]                   = Var(true)
+  val isSettingsOpen: Var[Boolean]                   = Var(false)
 
   private def loadSavedTheme(): String =
     Option(dom.window.localStorage.getItem("caltrack_theme")).filter(_.nonEmpty).getOrElse("light")

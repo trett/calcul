@@ -92,3 +92,15 @@ object ApiClient:
 
   def getWeights(from: LocalDate, to: LocalDate): Future[List[DailyWeight]] =
     getJson[List[DailyWeight]](s"/api/weights?from=$from&to=$to")
+
+  // --- User Settings APIs ---
+  def getGeminiKeyStatus(): Future[GeminiKeyStatus] =
+    getJson[GeminiKeyStatus]("/api/user/settings/gemini-key")
+
+  def saveGeminiKey(req: SaveGeminiKeyRequest): Future[GeminiKeyStatus] =
+    postJson[SaveGeminiKeyRequest, GeminiKeyStatus]("/api/user/settings/gemini-key", req)
+
+  def deleteGeminiKey(): Future[String] =
+    request("/api/user/settings/gemini-key", HttpMethod.DELETE, httpContentType = None).flatMap: res =>
+      if res.ok then res.text().toFuture
+      else Future.failed(new RuntimeException(s"Delete Gemini key failed: ${res.status}"))

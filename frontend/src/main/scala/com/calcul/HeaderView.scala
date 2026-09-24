@@ -123,6 +123,13 @@ object HeaderView:
               slButton(
                 slSize    := "small",
                 slVariant := "neutral",
+                slIcon(slName := "gear", slSlot := "prefix"),
+                "Settings",
+                onClick --> (_ => AppState.isSettingsOpen.set(true))
+              ),
+              slButton(
+                slSize    := "small",
+                slVariant := "neutral",
                 "Sign Out",
                 onClick --> { _ =>
                   import scala.concurrent.ExecutionContext.Implicits.global
