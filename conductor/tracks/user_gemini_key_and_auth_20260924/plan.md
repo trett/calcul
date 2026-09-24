@@ -31,7 +31,7 @@
 - [x] Task: AppShell Authentication Gate
     - [x] Write Tests for `AppState` authentication status signals and routing
     - [x] Update `AppShell.scala` to conditionally render `LandingView` when unauthenticated and full application shell when logged in
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Frontend Authentication Gating & Landing Screen' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Frontend Authentication Gating & Landing Screen' (Protocol in workflow.md)
 
 ## Phase 4: Frontend Settings View & Gemini Key Warnings
 - [ ] Task: Missing Key Warning Banner
