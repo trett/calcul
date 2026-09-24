@@ -7,9 +7,9 @@
 - [x] Task: AES-256-GCM Encryption Utility
     - [x] Write Tests for `CryptoUtilsSuite` verifying encryption, decryption, authentication tag, and invalid key handling
     - [x] Implement `CryptoUtils` using Java standard library `javax.crypto` (AES-GCM, zero-reflection)
-- [ ] Task: User Repository Key Operations
-    - [ ] Write Tests in `RepositorySuite` for updating, retrieving, and clearing user's encrypted Gemini API key
-    - [ ] Implement `updateGeminiKey` and `clearGeminiKey` in `UserRepository`
+- [x] Task: User Repository Key Operations
+    - [x] Write Tests in `RepositorySuite` for updating, retrieving, and clearing user's encrypted Gemini API key
+    - [x] Implement `updateGeminiKey` and `clearGeminiKey` in `UserRepository`
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Database Schema & Secure Key Storage' (Protocol in workflow.md)
 
 ## Phase 2: Key Validation, Gemini Service & API Endpoints

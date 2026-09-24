@@ -11,7 +11,8 @@ final case class User(
     email: String,
     name: String,
     pictureUrl: Option[String],
-    createdAt: Instant
+    createdAt: Instant,
+    encryptedGeminiApiKey: Option[String] = None
 ) derives ReadWriter
 
 final case class UserSummary(
