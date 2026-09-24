@@ -19,9 +19,9 @@
 - [x] Task: Gemini Key Validation & Per-User Gemini Service
     - [x] Write Tests in `GeminiServiceSuite` for key validation call and user-specific key execution
     - [x] Implement `validateKey` and update `GeminiService.analyzeMeal` to decrypt and use the caller's key
-- [ ] Task: Server Routes & Authentication Enforcement
-    - [ ] Write Tests in `ServerRoutesSuite` asserting 401 on unauthenticated access and successful key management
-    - [ ] Implement route handlers in `ServerRoutes.scala` for settings endpoints and connect to `UserRepository` & `GeminiService`
+- [x] Task: Server Routes & Authentication Enforcement
+    - [x] Write Tests in `ServerRoutesSuite` asserting 401 on unauthenticated access and successful key management
+    - [x] Implement route handlers in `ServerRoutes.scala` for settings endpoints and connect to `UserRepository` & `GeminiService`
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Key Validation, Gemini Service & API Endpoints' (Protocol in workflow.md)
 
 ## Phase 3: Frontend Authentication Gating & Landing Screen

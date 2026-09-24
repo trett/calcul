@@ -6,15 +6,16 @@ import java.time.LocalDate
 import java.util.UUID
 import javax.sql.DataSource
 import scala.util.{Try, Using}
+import sttp.model.StatusCode
 import sttp.shared.Identity
 import sttp.tapir.server.ServerEndpoint
 import sttp.tapir.server.netty.sync.NettySyncServer
 import sttp.tapir.stringToPath
 import com.calcul.ai.GeminiService
 import com.calcul.api.Endpoints
-import com.calcul.auth.{AuthConfig, AuthService}
+import com.calcul.auth.{AuthConfig, AuthService, CryptoUtils}
 import com.calcul.db.*
-import com.calcul.model.UserSummary
+import com.calcul.model.{GeminiKeyStatus, User, UserSummary}
 
 class ServerRoutes(
     transactor: DbTransactor,
@@ -39,6 +40,11 @@ class ServerRoutes(
   val authService: AuthService          = new AuthService(userRepo, authConfig)
 
   val defaultUserId: UUID = UUID.fromString("00000000-0000-0000-0000-000000000001")
+
+  private def authenticate(sessionCookieOpt: Option[String]): Either[(StatusCode, String), User] =
+    sessionCookieOpt.flatMap(authService.verifySessionToken).flatMap(userRepo.findById) match
+      case Some(user) => Right(user)
+      case None       => Left((StatusCode.Unauthorized, "Unauthorized"))
 
   val loginRoute: ServerEndpoint[Any, Identity] =
     Endpoints.loginEndpoint.serverLogicSuccess[Identity](_ => authService.loginUrl("auth_state"))
@@ -68,21 +74,60 @@ class ServerRoutes(
       (Some(cookieHeader), redirectHtml)
     }
 
-  val meRoute: ServerEndpoint[Any, Identity] =
+  val meRoute =
     Endpoints.meEndpoint.serverLogicSuccess[Identity] { sessionCookieOpt =>
+      def toSummary(u: User): UserSummary =
+        val hasKey = u.encryptedGeminiApiKey.isDefined
+        val masked = u.encryptedGeminiApiKey.flatMap { enc =>
+          CryptoUtils.decrypt(enc, authConfig.sessionSecret).toOption.map(CryptoUtils.maskKey)
+        }
+        UserSummary(u.id, u.email, u.name, u.pictureUrl, hasKey, masked)
+
       val userOpt = sessionCookieOpt.flatMap(authService.verifySessionToken).flatMap(userRepo.findById)
       userOpt match
-        case Some(u) => UserSummary(u.id, u.email, u.name, u.pictureUrl)
+        case Some(u) => toSummary(u)
         case None =>
           userRepo.findById(defaultUserId) match
-            case Some(u) => UserSummary(u.id, u.email, u.name, u.pictureUrl)
-            case None    => UserSummary(defaultUserId, "demo@example.com", "Demo User", None)
+            case Some(u) => toSummary(u)
+            case None    => UserSummary(defaultUserId, "demo@example.com", "Demo User", None, false, None)
     }
 
   val logoutRoute: ServerEndpoint[Any, Identity] =
     Endpoints.logoutEndpoint.serverLogicSuccess[Identity] { _ =>
       val clearCookie = "session=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0"
       (Some(clearCookie), "Logged out successfully")
+    }
+
+  val getGeminiKeyStatusRoute =
+    Endpoints.getGeminiKeyStatusEndpoint.serverLogic[Identity] { sessionCookieOpt =>
+      authenticate(sessionCookieOpt).map { user =>
+        val encKeyOpt = userRepo.getEncryptedGeminiKey(user.id)
+        val maskedKeyOpt = encKeyOpt.flatMap { enc =>
+          CryptoUtils.decrypt(enc, authConfig.sessionSecret).toOption.map(CryptoUtils.maskKey)
+        }
+        GeminiKeyStatus(hasKey = encKeyOpt.isDefined, maskedKey = maskedKeyOpt)
+      }
+    }
+
+  val saveGeminiKeyRoute =
+    Endpoints.saveGeminiKeyEndpoint.serverLogic[Identity] { case (sessionCookieOpt, req) =>
+      authenticate(sessionCookieOpt).flatMap { user =>
+        gemini.validateKey(req.apiKey) match
+          case Left(err) =>
+            Left((StatusCode.BadRequest, s"Invalid Gemini API key: $err"))
+          case Right(()) =>
+            val encrypted = CryptoUtils.encrypt(req.apiKey.trim, authConfig.sessionSecret)
+            userRepo.updateGeminiKey(user.id, encrypted)
+            Right(GeminiKeyStatus(hasKey = true, maskedKey = Some(CryptoUtils.maskKey(req.apiKey.trim))))
+      }
+    }
+
+  val deleteGeminiKeyRoute =
+    Endpoints.deleteGeminiKeyEndpoint.serverLogic[Identity] { sessionCookieOpt =>
+      authenticate(sessionCookieOpt).map { user =>
+        userRepo.clearGeminiKey(user.id)
+        "Gemini API key deleted successfully"
+      }
     }
 
   val analyzeMealRoute: ServerEndpoint[Any, Identity] =
@@ -196,6 +241,9 @@ class ServerRoutes(
     setDailyTargetRoute,
     recordWeightRoute,
     getWeightsRoute,
+    getGeminiKeyStatusRoute,
+    saveGeminiKeyRoute,
+    deleteGeminiKeyRoute,
     indexRoute
   )
 
