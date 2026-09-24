@@ -16,9 +16,9 @@
 - [x] Task: Shared Domain Models & Tapir Endpoints
     - [x] Write Tests for DTO JSON serialization (`GeminiKeyStatus`, `SaveGeminiKeyRequest`) in `DomainModelsSuite`
     - [x] Add shared models and declare Tapir endpoints for `GET /api/user/settings`, `POST /api/user/settings/gemini-key`, and `DELETE /api/user/settings/gemini-key` in `Endpoints.scala`
-- [ ] Task: Gemini Key Validation & Per-User Gemini Service
-    - [ ] Write Tests in `GeminiServiceSuite` for key validation call and user-specific key execution
-    - [ ] Implement `validateKey` and update `GeminiService.analyzeMeal` to decrypt and use the caller's key
+- [x] Task: Gemini Key Validation & Per-User Gemini Service
+    - [x] Write Tests in `GeminiServiceSuite` for key validation call and user-specific key execution
+    - [x] Implement `validateKey` and update `GeminiService.analyzeMeal` to decrypt and use the caller's key
 - [ ] Task: Server Routes & Authentication Enforcement
     - [ ] Write Tests in `ServerRoutesSuite` asserting 401 on unauthenticated access and successful key management
     - [ ] Implement route handlers in `ServerRoutes.scala` for settings endpoints and connect to `UserRepository` & `GeminiService`

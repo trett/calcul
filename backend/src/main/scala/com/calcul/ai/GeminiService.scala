@@ -8,17 +8,52 @@ import com.calcul.model.{AnalyzedItem, MealAnalysisResponse}
 
 class GeminiService(apiKey: Option[String] = sys.env.get("GEMINI_API_KEY")):
 
+  def validateKey(key: String): Either[String, Unit] =
+    val trimmed = key.trim
+    if trimmed.isEmpty then Left("API key cannot be empty")
+    else
+      Try {
+        val client = HttpClient.newHttpClient()
+        val uri = URI.create(
+          s"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=$trimmed"
+        )
+        val requestJson = ujson
+          .Obj(
+            "contents" -> ujson.Arr(
+              ujson.Obj("parts" -> ujson.Arr(ujson.Obj("text" -> ujson.Str("ping"))))
+            )
+          )
+          .render()
+
+        val request = HttpRequest
+          .newBuilder()
+          .uri(uri)
+          .header("Content-Type", "application/json")
+          .POST(HttpRequest.BodyPublishers.ofString(requestJson, StandardCharsets.UTF_8))
+          .build()
+
+        val response = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8))
+        if response.statusCode() == 200 then Right(())
+        else
+          val status = response.statusCode()
+          val body   = response.body()
+          val detail =
+            Try(ujson.read(body)("error")("message").str).getOrElse(s"HTTP $status")
+          Left(s"Invalid Gemini API key: $detail")
+      }.toEither.left.map(ex => s"Failed to reach Gemini API: ${ex.getMessage}").flatten
+
   def analyzeMeal(
       description: Option[String],
       base64Image: Option[String] = None,
-      mimeType: Option[String] = None
+      mimeType: Option[String] = None,
+      userApiKey: Option[String] = None
   ): MealAnalysisResponse =
-    apiKey match
-      case Some(key) if key.trim.nonEmpty =>
+    val effectiveKey = userApiKey.filter(_.trim.nonEmpty).orElse(apiKey.filter(_.trim.nonEmpty))
+    effectiveKey match
+      case Some(key) =>
         Try(callGeminiApi(key.trim, description.getOrElse("Meal photo nutritional analysis"), base64Image, mimeType))
           .getOrElse(fallbackEstimation(description.getOrElse("Meal")))
-      case _ =>
-        // Fallback estimation when API key is not configured (e.g. offline dev/testing)
+      case None =>
         fallbackEstimation(description.getOrElse("Meal"))
 
   private def callGeminiApi(
