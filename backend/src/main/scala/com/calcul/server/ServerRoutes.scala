@@ -19,14 +19,14 @@ import com.calcul.model.{GeminiKeyStatus, User, UserSummary}
 
 class ServerRoutes(
     transactor: DbTransactor,
-    gemini: GeminiService = new GeminiService(None),
+    gemini: GeminiService = new GeminiService(),
     authConfig: AuthConfig = AuthConfig.fromEnv()
 ):
 
-  def this(ds: DataSource) = this(DbTransactor.fromDataSource(ds), new GeminiService(None), AuthConfig.fromEnv())
+  def this(ds: DataSource) = this(DbTransactor.fromDataSource(ds), new GeminiService(), AuthConfig.fromEnv())
   def this(ds: DataSource, gemini: GeminiService, authConfig: AuthConfig) =
     this(DbTransactor.fromDataSource(ds), gemini, authConfig)
-  def this(conn: Connection) = this(DbTransactor.fromConnection(conn), new GeminiService(None), AuthConfig.fromEnv())
+  def this(conn: Connection) = this(DbTransactor.fromConnection(conn), new GeminiService(), AuthConfig.fromEnv())
   def this(conn: Connection, gemini: GeminiService, authConfig: AuthConfig) =
     this(DbTransactor.fromConnection(conn), gemini, authConfig)
 

@@ -24,7 +24,7 @@ class MealEndpointsSuite extends FunSuite:
       )
       userRepo.upsert(testUser)
 
-      val gemini      = new GeminiService(None)
+      val gemini      = new GeminiService()
       val mealService = new MealService(conn, gemini)
 
       // 1. Analyze

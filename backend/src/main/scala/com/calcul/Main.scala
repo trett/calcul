@@ -12,8 +12,7 @@ object Main:
     val dbConfig   = DatabaseConfig.fromEnv()
     val dataSource = DatabaseConfig.createDataSource(dbConfig)
 
-    val geminiApiKey  = sys.env.get("GEMINI_API_KEY")
-    val geminiService = new GeminiService(geminiApiKey)
+    val geminiService = new GeminiService()
     val authConfig    = AuthConfig.fromEnv()
 
     val host = sys.env.getOrElse("HOST", "0.0.0.0")

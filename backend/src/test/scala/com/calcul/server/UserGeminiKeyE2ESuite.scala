@@ -17,7 +17,7 @@ class UserGeminiKeyE2ESuite extends FunSuite:
     try
       val validApiKey = "AIzaSyDemoValidSecretKey1234"
 
-      val mockGemini = new GeminiService(None):
+      val mockGemini = new GeminiService:
         override def validateKey(key: String): Either[String, Unit] =
           if key == validApiKey then Right(())
           else Left("Invalid API key")

@@ -38,7 +38,7 @@ class ServerRoutesSuite extends FunSuite:
   test("Settings routes allow authenticated user to manage key") {
     val conn = TestPostgresContainer.newConnection()
     try
-      val mockGemini = new com.calcul.ai.GeminiService(None):
+      val mockGemini = new com.calcul.ai.GeminiService:
         override def validateKey(key: String): Either[String, Unit] =
           if key == "valid-secret-key-1234" then Right(())
           else Left("Bad key")

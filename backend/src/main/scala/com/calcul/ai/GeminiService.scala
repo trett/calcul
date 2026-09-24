@@ -6,7 +6,7 @@ import java.nio.charset.StandardCharsets
 import scala.util.Try
 import com.calcul.model.{AnalyzedItem, MealAnalysisResponse}
 
-class GeminiService(apiKey: Option[String] = sys.env.get("GEMINI_API_KEY")):
+class GeminiService:
 
   def validateKey(key: String): Either[String, Unit] =
     val trimmed = key.trim
@@ -48,8 +48,7 @@ class GeminiService(apiKey: Option[String] = sys.env.get("GEMINI_API_KEY")):
       mimeType: Option[String] = None,
       userApiKey: Option[String] = None
   ): MealAnalysisResponse =
-    val effectiveKey = userApiKey.filter(_.trim.nonEmpty).orElse(apiKey.filter(_.trim.nonEmpty))
-    effectiveKey match
+    userApiKey.filter(_.trim.nonEmpty) match
       case Some(key) =>
         Try(callGeminiApi(key.trim, description.getOrElse("Meal photo nutritional analysis"), base64Image, mimeType))
           .getOrElse(fallbackEstimation(description.getOrElse("Meal")))
