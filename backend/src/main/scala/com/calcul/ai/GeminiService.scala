@@ -3,20 +3,26 @@ package com.calcul.ai
 import java.net.URI
 import java.net.http.{HttpClient, HttpRequest, HttpResponse}
 import java.nio.charset.StandardCharsets
+import java.time.Duration
 import scala.util.Try
 import com.calcul.model.{AnalyzedItem, MealAnalysisResponse}
 
 class GeminiService:
+
+  private val httpClient: HttpClient =
+    HttpClient
+      .newBuilder()
+      .connectTimeout(Duration.ofSeconds(10))
+      .build()
+
+  private val ApiEndpoint: URI =
+    URI.create("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent")
 
   def validateKey(key: String): Either[String, Unit] =
     val trimmed = key.trim
     if trimmed.isEmpty then Left("API key cannot be empty")
     else
       Try {
-        val client = HttpClient.newHttpClient()
-        val uri = URI.create(
-          s"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=$trimmed"
-        )
         val requestJson = ujson
           .Obj(
             "contents" -> ujson.Arr(
@@ -27,12 +33,14 @@ class GeminiService:
 
         val request = HttpRequest
           .newBuilder()
-          .uri(uri)
+          .uri(ApiEndpoint)
           .header("Content-Type", "application/json")
+          .header("x-goog-api-key", trimmed)
+          .timeout(Duration.ofSeconds(15))
           .POST(HttpRequest.BodyPublishers.ofString(requestJson, StandardCharsets.UTF_8))
           .build()
 
-        val response = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8))
+        val response = httpClient.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8))
         if response.statusCode() == 200 then Right(())
         else
           val status = response.statusCode()
@@ -100,18 +108,16 @@ class GeminiService:
       )
       .render()
 
-    val client = HttpClient.newHttpClient()
-    val uri = URI.create(
-      s"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=$key"
-    )
     val request = HttpRequest
       .newBuilder()
-      .uri(uri)
+      .uri(ApiEndpoint)
       .header("Content-Type", "application/json")
+      .header("x-goog-api-key", key.trim)
+      .timeout(Duration.ofSeconds(20))
       .POST(HttpRequest.BodyPublishers.ofString(requestJson, StandardCharsets.UTF_8))
       .build()
 
-    val response = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8))
+    val response = httpClient.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8))
     if response.statusCode() == 200 then
       val respJson    = ujson.read(response.body())
       val textContent = respJson("candidates")(0)("content")("parts")(0)("text").str

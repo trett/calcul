@@ -123,9 +123,19 @@ class ServerRoutes(
       }
     }
 
-  val analyzeMealRoute: ServerEndpoint[Any, Identity] =
-    Endpoints.analyzeMealEndpoint.serverLogicSuccess[Identity] { req =>
-      mealService.analyze(req)
+  val analyzeMealRoute =
+    Endpoints.analyzeMealEndpoint.serverLogic[Identity] { case (sessionCookieOpt, req) =>
+      authenticate(sessionCookieOpt).flatMap { user =>
+        userRepo.getEncryptedGeminiKey(user.id) match
+          case None =>
+            Left((StatusCode.BadRequest, "Gemini API key not configured. Please configure your key in User Settings."))
+          case Some(encKey) =>
+            CryptoUtils.decrypt(encKey, authConfig.sessionSecret) match
+              case Left(err) =>
+                Left((StatusCode.InternalServerError, s"Failed to decrypt Gemini API key: $err"))
+              case Right(key) =>
+                Right(mealService.analyze(req, userApiKey = Some(key)))
+      }
     }
 
   val createMealRoute: ServerEndpoint[Any, Identity] =

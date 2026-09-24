@@ -15,11 +15,21 @@ class MealService(transactor: DbTransactor, gemini: GeminiService):
 
   private val mealRepo = new MealRepository(transactor)
 
-  def analyze(req: AnalyzeMealRequest): MealAnalysisResponse =
-    gemini.analyzeMeal(req.description, req.imageBase64, req.mimeType)
+  def analyze(req: AnalyzeMealRequest, userApiKey: Option[String]): MealAnalysisResponse =
+    gemini.analyzeMeal(req.description, req.imageBase64, req.mimeType, userApiKey = userApiKey)
 
-  def analyze(description: String, imageBase64: Option[String] = None): MealAnalysisResponse =
-    gemini.analyzeMeal(Some(description), imageBase64)
+  def analyze(req: AnalyzeMealRequest): MealAnalysisResponse =
+    analyze(req, None)
+
+  def analyze(description: String): MealAnalysisResponse =
+    analyze(description, None, None)
+
+  def analyze(
+      description: String,
+      imageBase64: Option[String],
+      userApiKey: Option[String]
+  ): MealAnalysisResponse =
+    gemini.analyzeMeal(Some(description), imageBase64, userApiKey = userApiKey)
 
   def createMeal(userId: UUID, req: CreateMealRequest): Meal =
     val mealId = UUID.randomUUID()

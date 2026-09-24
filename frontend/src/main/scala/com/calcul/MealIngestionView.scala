@@ -42,26 +42,27 @@ object MealIngestionView:
 
         if desc.isEmpty && b64Opt.isEmpty then
           AppState.notify("Please enter a meal description or select an image", "warning")
-        else isAnalyzingVar.set(true)
-        val req = AnalyzeMealRequest(
-          description = if desc.nonEmpty then Some(desc) else None,
-          imageBase64 = b64Opt,
-          mimeType = mimeOpt
-        )
-        ApiClient.analyzeMeal(req).onComplete {
-          case Success(analysis) =>
-            isAnalyzingVar.set(false)
-            reviewExplanationVar.set(analysis.explanation)
-            val items = analysis.items.zipWithIndex.map { case (item, idx) =>
-              EditableItem(idx + 1, Var(item.name), Var(item.calories))
-            }
-            nextItemId.set(items.length + 1)
-            reviewItemsVar.set(items)
-            reviewModalOpenVar.set(true)
-          case Failure(err) =>
-            isAnalyzingVar.set(false)
-            AppState.notify(s"AI Analysis failed: ${err.getMessage}", "danger")
-        }
+        else
+          isAnalyzingVar.set(true)
+          val req = AnalyzeMealRequest(
+            description = if desc.nonEmpty then Some(desc) else None,
+            imageBase64 = b64Opt,
+            mimeType = mimeOpt
+          )
+          ApiClient.analyzeMeal(req).onComplete {
+            case Success(analysis) =>
+              isAnalyzingVar.set(false)
+              reviewExplanationVar.set(analysis.explanation)
+              val items = analysis.items.zipWithIndex.map { case (item, idx) =>
+                EditableItem(idx + 1, Var(item.name), Var(item.calories))
+              }
+              nextItemId.set(items.length + 1)
+              reviewItemsVar.set(items)
+              reviewModalOpenVar.set(true)
+            case Failure(err) =>
+              isAnalyzingVar.set(false)
+              AppState.notify(s"AI Analysis failed: ${err.getMessage}", "danger")
+          }
 
     def saveMeal(): Unit =
       val items = reviewItemsVar.now().map { it =>

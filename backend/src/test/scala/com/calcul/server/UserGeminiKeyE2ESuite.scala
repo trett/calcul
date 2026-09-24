@@ -63,6 +63,10 @@ class UserGeminiKeyE2ESuite extends FunSuite:
         routes.deleteGeminiKeyRoute.logic(IdentityMonad)(())(None),
         Left((StatusCode.Unauthorized, "Unauthorized"))
       )
+      assertEquals(
+        routes.analyzeMealRoute.logic(IdentityMonad)(())((None, AnalyzeMealRequest(description = Some("test")))),
+        Left((StatusCode.Unauthorized, "Unauthorized"))
+      )
 
       // --- Scenario 2: Authenticated user without Gemini API key ---
       val user = User(
@@ -82,6 +86,12 @@ class UserGeminiKeyE2ESuite extends FunSuite:
 
       val keyStatusInitial = routes.getGeminiKeyStatusRoute.logic(IdentityMonad)(())(Some(sessionToken))
       assertEquals(keyStatusInitial, Right(GeminiKeyStatus(hasKey = false, maskedKey = None)))
+
+      // Attempting meal analysis without configured Gemini key returns 400 BadRequest
+      val noKeyAnalysis = routes.analyzeMealRoute.logic(IdentityMonad)(())(
+        (Some(sessionToken), AnalyzeMealRequest(description = Some("Bowl of oatmeal")))
+      )
+      assertEquals(noKeyAnalysis.left.map(_._1), Left(StatusCode.BadRequest))
 
       // --- Scenario 3: Key validation rejection on invalid key ---
       val invalidSave = routes.saveGeminiKeyRoute.logic(IdentityMonad)(())(
@@ -116,12 +126,12 @@ class UserGeminiKeyE2ESuite extends FunSuite:
       val keyStatusAfterSave = routes.getGeminiKeyStatusRoute.logic(IdentityMonad)(())(Some(sessionToken))
       assertEquals(keyStatusAfterSave, Right(GeminiKeyStatus(hasKey = true, maskedKey = Some("••••••••••••1234"))))
 
-      // --- Scenario 5: User AI Analysis executes with user's key ---
-      val analysisResult = mockGemini.analyzeMeal(
-        description = Some("Bowl of oatmeal"),
-        userApiKey = Some(validApiKey)
+      // --- Scenario 5: User AI Analysis executes via HTTP endpoint with user's decrypted key ---
+      val analysisResult = routes.analyzeMealRoute.logic(IdentityMonad)(())(
+        (Some(sessionToken), AnalyzeMealRequest(description = Some("Bowl of oatmeal")))
       )
-      assertEquals(analysisResult.explanation, "Analysis executed with verified user Gemini key")
+      assert(analysisResult.isRight, "Authenticated meal analysis should succeed")
+      assertEquals(analysisResult.map(_.explanation), Right("Analysis executed with verified user Gemini key"))
 
       // --- Scenario 6: Delete saved Gemini API key ---
       val deleteRes = routes.deleteGeminiKeyRoute.logic(IdentityMonad)(())(Some(sessionToken))

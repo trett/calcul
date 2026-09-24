@@ -63,10 +63,15 @@ object AppState:
     isAuthChecking.set(true)
     ApiClient
       .getCurrentUser()
-      .foreach: userOpt =>
-        currentUser.set(userOpt)
-        isAuthChecking.set(false)
-        if userOpt.isDefined then loadDailyData()
+      .onComplete {
+        case scala.util.Success(userOpt) =>
+          currentUser.set(userOpt)
+          isAuthChecking.set(false)
+          if userOpt.isDefined then loadDailyData()
+        case scala.util.Failure(_) =>
+          currentUser.set(None)
+          isAuthChecking.set(false)
+      }
 
   def loadDailyData(): Unit =
     val d = selectedDate.now()

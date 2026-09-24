@@ -39,11 +39,14 @@ object Endpoints:
       .summary("Logout user session")
 
   // --- Meals & AI Analysis Endpoints ---
-  val analyzeMealEndpoint: PublicEndpoint[AnalyzeMealRequest, Unit, MealAnalysisResponse, Any] =
+  val analyzeMealEndpoint
+      : PublicEndpoint[(Option[String], AnalyzeMealRequest), (StatusCode, String), MealAnalysisResponse, Any] =
     endpoint.post
       .in("api" / "meals" / "analyze")
+      .in(cookie[Option[String]]("session"))
       .in(jsonBody[AnalyzeMealRequest])
       .out(jsonBody[MealAnalysisResponse])
+      .errorOut(statusCode.and(stringBody))
       .summary("Analyze meal description/photo with Gemini Flash")
 
   val createMealEndpoint: PublicEndpoint[CreateMealRequest, Unit, Meal, Any] =

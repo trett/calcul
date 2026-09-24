@@ -62,9 +62,12 @@ object SettingsView:
                   slIcon(slName := "trash", slSlot := "prefix"),
                   "Remove Key",
                   onClick --> { _ =>
-                    ApiClient.deleteGeminiKey().foreach { _ =>
-                      AppState.currentUser.update(_.map(_.copy(hasGeminiKey = false, maskedGeminiKey = None)))
-                      AppState.notify("Gemini API key removed", "neutral")
+                    ApiClient.deleteGeminiKey().onComplete {
+                      case scala.util.Success(_) =>
+                        AppState.currentUser.update(_.map(_.copy(hasGeminiKey = false, maskedGeminiKey = None)))
+                        AppState.notify("Gemini API key removed", "neutral")
+                      case scala.util.Failure(err) =>
+                        AppState.notify(s"Failed to remove API key: ${err.getMessage}", "danger")
                     }
                   }
                 )
@@ -142,12 +145,16 @@ object SettingsView:
             else
               isSubmitting.set(true)
               errorMessage.set(None)
-              ApiClient.saveGeminiKey(SaveGeminiKeyRequest(key)).foreach { status =>
-                isSubmitting.set(false)
-                AppState.currentUser.update(_.map(_.copy(hasGeminiKey = true, maskedGeminiKey = status.maskedKey)))
-                newKeyVar.set("")
-                AppState.notify("Gemini API key validated and saved successfully!", "success")
-                AppState.isSettingsOpen.set(false)
+              ApiClient.saveGeminiKey(SaveGeminiKeyRequest(key)).onComplete {
+                case scala.util.Success(status) =>
+                  isSubmitting.set(false)
+                  AppState.currentUser.update(_.map(_.copy(hasGeminiKey = true, maskedGeminiKey = status.maskedKey)))
+                  newKeyVar.set("")
+                  AppState.notify("Gemini API key validated and saved successfully!", "success")
+                  AppState.isSettingsOpen.set(false)
+                case scala.util.Failure(err) =>
+                  isSubmitting.set(false)
+                  errorMessage.set(Some(s"Key validation failed: ${err.getMessage}"))
               }
           }
         )
