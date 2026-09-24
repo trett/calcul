@@ -43,7 +43,7 @@
 - [x] Task: AI Meal Analysis Gating
     - [x] Write Tests for meal analysis prevention when key is unconfigured
     - [x] Update `MealLogView` / `DashboardView` to prompt the user to configure their key if attempting analysis without one
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Frontend Settings View & Gemini Key Warnings' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 4: Frontend Settings View & Gemini Key Warnings' (Protocol in workflow.md)
 
 ## Phase 5: End-to-End Verification & Quality Polish
 - [ ] Task: System Integration Verification
