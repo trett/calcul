@@ -51,55 +51,73 @@ object Endpoints:
       .errorOut(statusCode.and(stringBody))
       .summary("Analyze meal description/photo with Gemini Flash")
 
-  val createMealEndpoint: PublicEndpoint[CreateMealRequest, Unit, Meal, Any] =
+  val createMealEndpoint: PublicEndpoint[(Option[String], CreateMealRequest), (StatusCode, String), Meal, Any] =
     endpoint.post
       .in("api" / "meals")
+      .in(cookie[Option[String]]("session"))
       .in(jsonBody[CreateMealRequest])
       .out(jsonBody[Meal])
+      .errorOut(statusCode.and(stringBody))
       .summary("Save meal entry")
 
-  val listMealsEndpoint: PublicEndpoint[String, Unit, List[Meal], Any] =
+  val listMealsEndpoint: PublicEndpoint[(Option[String], String), (StatusCode, String), List[Meal], Any] =
     endpoint.get
       .in("api" / "meals")
+      .in(cookie[Option[String]]("session"))
       .in(query[String]("date"))
       .out(jsonBody[List[Meal]])
+      .errorOut(statusCode.and(stringBody))
       .summary("List meals for a date")
 
-  val deleteMealEndpoint: PublicEndpoint[String, Unit, String, Any] =
+  val deleteMealEndpoint: PublicEndpoint[(Option[String], String), (StatusCode, String), String, Any] =
     endpoint.delete
+      .in(cookie[Option[String]]("session"))
       .in("api" / "meals" / path[String]("id"))
       .out(stringBody)
+      .errorOut(statusCode.and(stringBody))
       .summary("Delete meal by ID")
 
   // --- Calorie Goals & Daily Aggregation Endpoints ---
-  val getDailyCaloriesEndpoint: PublicEndpoint[String, Unit, DailyCalorieSummary, Any] =
+  val getDailyCaloriesEndpoint
+      : PublicEndpoint[(Option[String], String), (StatusCode, String), DailyCalorieSummary, Any] =
     endpoint.get
       .in("api" / "calories" / "daily")
+      .in(cookie[Option[String]]("session"))
       .in(query[String]("date"))
       .out(jsonBody[DailyCalorieSummary])
+      .errorOut(statusCode.and(stringBody))
       .summary("Get daily calorie summary and budget balance")
 
-  val setDailyTargetEndpoint: PublicEndpoint[SetTargetRequest, Unit, DailyTarget, Any] =
+  val setDailyTargetEndpoint
+      : PublicEndpoint[(Option[String], SetTargetRequest), (StatusCode, String), DailyTarget, Any] =
     endpoint.put
       .in("api" / "calories" / "target")
+      .in(cookie[Option[String]]("session"))
       .in(jsonBody[SetTargetRequest])
       .out(jsonBody[DailyTarget])
+      .errorOut(statusCode.and(stringBody))
       .summary("Set daily calorie target")
 
   // --- Weight Tracking Endpoints ---
-  val recordWeightEndpoint: PublicEndpoint[RecordWeightRequest, Unit, DailyWeight, Any] =
+  val recordWeightEndpoint
+      : PublicEndpoint[(Option[String], RecordWeightRequest), (StatusCode, String), DailyWeight, Any] =
     endpoint.post
       .in("api" / "weights")
+      .in(cookie[Option[String]]("session"))
       .in(jsonBody[RecordWeightRequest])
       .out(jsonBody[DailyWeight])
+      .errorOut(statusCode.and(stringBody))
       .summary("Record daily weight")
 
-  val getWeightsEndpoint: PublicEndpoint[(String, String), Unit, List[DailyWeight], Any] =
+  val getWeightsEndpoint
+      : PublicEndpoint[(Option[String], String, String), (StatusCode, String), List[DailyWeight], Any] =
     endpoint.get
       .in("api" / "weights")
+      .in(cookie[Option[String]]("session"))
       .in(query[String]("from"))
       .in(query[String]("to"))
       .out(jsonBody[List[DailyWeight]])
+      .errorOut(statusCode.and(stringBody))
       .summary("Get weight entries in date range")
 
   // --- User Settings Endpoints ---

@@ -42,8 +42,6 @@ class ServerRoutes(
 
   private val logger = LoggerFactory.getLogger(getClass)
 
-  val defaultUserId: UUID = UUID.fromString("00000000-0000-0000-0000-000000000001")
-
   private def authenticate(sessionCookieOpt: Option[String]): Either[(StatusCode, String), User] =
     sessionCookieOpt.flatMap(authService.verifySessionToken).flatMap(userRepo.findById) match
       case Some(user) => Right(user)
@@ -190,48 +188,62 @@ class ServerRoutes(
       }
     }
 
-  val createMealRoute: ServerEndpoint[Any, Identity] =
-    Endpoints.createMealEndpoint.serverLogicSuccess[Identity] { req =>
-      mealService.createMeal(defaultUserId, req)
+  val createMealRoute =
+    Endpoints.createMealEndpoint.serverLogic[Identity] { case (sessionCookieOpt, req) =>
+      authenticate(sessionCookieOpt).map { user =>
+        mealService.createMeal(user.id, req)
+      }
     }
 
-  val listMealsRoute: ServerEndpoint[Any, Identity] =
-    Endpoints.listMealsEndpoint.serverLogicSuccess[Identity] { dateStr =>
-      val date = Try(LocalDate.parse(dateStr)).getOrElse(LocalDate.now())
-      mealService.listMeals(defaultUserId, date)
+  val listMealsRoute =
+    Endpoints.listMealsEndpoint.serverLogic[Identity] { case (sessionCookieOpt, dateStr) =>
+      authenticate(sessionCookieOpt).map { user =>
+        val date = Try(LocalDate.parse(dateStr)).getOrElse(LocalDate.now())
+        mealService.listMeals(user.id, date)
+      }
     }
 
-  val deleteMealRoute: ServerEndpoint[Any, Identity] =
-    Endpoints.deleteMealEndpoint.serverLogicSuccess[Identity] { idStr =>
-      Try(UUID.fromString(idStr)).toOption match
-        case Some(mealId) =>
-          if mealService.deleteMeal(defaultUserId, mealId) then s"Meal $idStr deleted"
-          else s"Meal $idStr not found"
-        case None =>
-          s"Invalid meal ID $idStr"
+  val deleteMealRoute =
+    Endpoints.deleteMealEndpoint.serverLogic[Identity] { case (sessionCookieOpt, idStr) =>
+      authenticate(sessionCookieOpt).flatMap { user =>
+        Try(UUID.fromString(idStr)).toOption match
+          case Some(mealId) =>
+            if mealService.deleteMeal(user.id, mealId) then Right(s"Meal $idStr deleted")
+            else Left((StatusCode.NotFound, s"Meal $idStr not found"))
+          case None =>
+            Left((StatusCode.BadRequest, s"Invalid meal ID $idStr"))
+      }
     }
 
-  val getDailyCaloriesRoute: ServerEndpoint[Any, Identity] =
-    Endpoints.getDailyCaloriesEndpoint.serverLogicSuccess[Identity] { dateStr =>
-      val date = Try(LocalDate.parse(dateStr)).getOrElse(LocalDate.now())
-      calorieService.getDailySummary(defaultUserId, date)
+  val getDailyCaloriesRoute =
+    Endpoints.getDailyCaloriesEndpoint.serverLogic[Identity] { case (sessionCookieOpt, dateStr) =>
+      authenticate(sessionCookieOpt).map { user =>
+        val date = Try(LocalDate.parse(dateStr)).getOrElse(LocalDate.now())
+        calorieService.getDailySummary(user.id, date)
+      }
     }
 
-  val setDailyTargetRoute: ServerEndpoint[Any, Identity] =
-    Endpoints.setDailyTargetEndpoint.serverLogicSuccess[Identity] { req =>
-      calorieService.setTarget(defaultUserId, req)
+  val setDailyTargetRoute =
+    Endpoints.setDailyTargetEndpoint.serverLogic[Identity] { case (sessionCookieOpt, req) =>
+      authenticate(sessionCookieOpt).map { user =>
+        calorieService.setTarget(user.id, req)
+      }
     }
 
-  val recordWeightRoute: ServerEndpoint[Any, Identity] =
-    Endpoints.recordWeightEndpoint.serverLogicSuccess[Identity] { req =>
-      weightService.recordWeight(defaultUserId, req)
+  val recordWeightRoute =
+    Endpoints.recordWeightEndpoint.serverLogic[Identity] { case (sessionCookieOpt, req) =>
+      authenticate(sessionCookieOpt).map { user =>
+        weightService.recordWeight(user.id, req)
+      }
     }
 
-  val getWeightsRoute: ServerEndpoint[Any, Identity] =
-    Endpoints.getWeightsEndpoint.serverLogicSuccess[Identity] { case (fromStr, toStr) =>
-      val fromDate = Try(LocalDate.parse(fromStr)).getOrElse(LocalDate.now().minusDays(30))
-      val toDate   = Try(LocalDate.parse(toStr)).getOrElse(LocalDate.now())
-      weightService.getWeights(defaultUserId, fromDate, toDate)
+  val getWeightsRoute =
+    Endpoints.getWeightsEndpoint.serverLogic[Identity] { case (sessionCookieOpt, fromStr, toStr) =>
+      authenticate(sessionCookieOpt).map { user =>
+        val fromDate = Try(LocalDate.parse(fromStr)).getOrElse(LocalDate.now().minusDays(30))
+        val toDate   = Try(LocalDate.parse(toStr)).getOrElse(LocalDate.now())
+        weightService.getWeights(user.id, fromDate, toDate)
+      }
     }
 
   val indexRoute: ServerEndpoint[Any, Identity] =

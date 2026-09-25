@@ -91,7 +91,7 @@ object ApiClient:
   def deleteMeal(mealId: UUID): Future[Unit] =
     request(s"/api/meals/$mealId", HttpMethod.DELETE, httpContentType = None).flatMap: res =>
       if res.ok then Future.successful(())
-      else Future.failed(new RuntimeException(s"Delete meal failed: ${res.status}"))
+      else extractErrorMessage(res, "Delete meal failed").flatMap(msg => Future.failed(new RuntimeException(msg)))
 
   // --- Calorie Goals & Daily Aggregations ---
   def getDailyCalories(date: LocalDate): Future[DailyCalorieSummary] =

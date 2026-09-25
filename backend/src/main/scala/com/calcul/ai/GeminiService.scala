@@ -21,8 +21,53 @@ class GeminiService:
   private val ModelsEndpoint: URI =
     URI.create("https://generativelanguage.googleapis.com/v1beta/models?pageSize=1")
 
-  private val ApiEndpoint: URI =
-    URI.create("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent")
+  private val activeModel: java.util.concurrent.atomic.AtomicReference[Option[String]] =
+    new java.util.concurrent.atomic.AtomicReference(sys.env.get("GEMINI_MODEL").filter(_.trim.nonEmpty))
+
+  private def formatModel(model: String): String =
+    val clean = model.trim.stripPrefix("/")
+    if clean.startsWith("models/") then clean else s"models/$clean"
+
+  private def discoverModel(apiKey: String): String =
+    activeModel.get() match
+      case Some(m) => formatModel(m)
+      case None =>
+        val resolved = fetchAvailableModel(apiKey).getOrElse("models/gemini-2.5-flash")
+        activeModel.set(Some(resolved))
+        resolved
+
+  private def fetchAvailableModel(apiKey: String): Option[String] =
+    Try {
+      val request = HttpRequest
+        .newBuilder()
+        .uri(URI.create("https://generativelanguage.googleapis.com/v1beta/models?pageSize=50"))
+        .header("x-goog-api-key", apiKey)
+        .timeout(Duration.ofSeconds(10))
+        .GET()
+        .build()
+
+      val response = httpClient.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8))
+      if response.statusCode() == 200 then
+        val json   = ujson.read(response.body())
+        val models = json.obj.get("models").map(_.arr.toList).getOrElse(Nil)
+        val validModels = models
+          .filter { m =>
+            val methods = m.obj.get("supportedGenerationMethods").map(_.arr.map(_.str).toList).getOrElse(Nil)
+            methods.contains("generateContent")
+          }
+          .map(_("name").str)
+
+        val flashModel = validModels
+          .find(m => m.contains("flash") && (m.contains("2.5") || m.contains("2.0") || m.contains("3.")))
+          .orElse(validModels.find(_.contains("flash")))
+          .orElse(validModels.headOption)
+
+        flashModel.foreach(m => logger.info(s"Discovered available Gemini model for generateContent: $m"))
+        flashModel
+      else
+        logger.warn(s"ListModels call returned HTTP ${response.statusCode()}: ${response.body()}")
+        None
+    }.toOption.flatten
 
   def validateKey(key: String): Either[String, Unit] =
     val cleaned = key.trim.stripPrefix("\"").stripSuffix("\"").stripPrefix("'").stripSuffix("'").trim
@@ -119,9 +164,12 @@ class GeminiService:
       )
       .render()
 
+    val model       = discoverModel(key)
+    val endpointUri = URI.create(s"https://generativelanguage.googleapis.com/v1beta/$model:generateContent")
+
     val request = HttpRequest
       .newBuilder()
-      .uri(ApiEndpoint)
+      .uri(endpointUri)
       .header("Content-Type", "application/json")
       .header("x-goog-api-key", key.trim)
       .timeout(Duration.ofSeconds(20))
@@ -138,6 +186,9 @@ class GeminiService:
           logger.warn(s"Failed to parse Gemini response JSON, falling back: $err")
           fallbackEstimation(prompt)
     else
+      if response.statusCode() == 404 then
+        logger.warn(s"Gemini model $model returned 404 Not Found. Resetting discovered model cache.")
+        if sys.env.get("GEMINI_MODEL").isEmpty then activeModel.set(None)
       logger.warn(s"Gemini API responded with HTTP status ${response.statusCode()}: ${response.body()}")
       fallbackEstimation(prompt)
 
