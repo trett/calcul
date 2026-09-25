@@ -151,13 +151,16 @@ class ServerRoutes(
   val saveGeminiKeyRoute =
     Endpoints.saveGeminiKeyEndpoint.serverLogic[Identity] { case (sessionCookieOpt, req) =>
       authenticate(sessionCookieOpt).flatMap { user =>
-        gemini.validateKey(req.apiKey) match
+        val cleanedKey = req.apiKey.trim.stripPrefix("\"").stripSuffix("\"").stripPrefix("'").stripSuffix("'").trim
+        gemini.validateKey(cleanedKey) match
           case Left(err) =>
+            logger.warn(s"Gemini API key validation rejected for user ${user.id}: $err")
             Left((StatusCode.BadRequest, s"Invalid Gemini API key: $err"))
           case Right(()) =>
-            val encrypted = CryptoUtils.encrypt(req.apiKey.trim, authConfig.sessionSecret)
+            val encrypted = CryptoUtils.encrypt(cleanedKey, authConfig.sessionSecret)
             userRepo.updateGeminiKey(user.id, encrypted)
-            Right(GeminiKeyStatus(hasKey = true, maskedKey = Some(CryptoUtils.maskKey(req.apiKey.trim))))
+            logger.info(s"Gemini API key successfully encrypted and saved for user ${user.id}")
+            Right(GeminiKeyStatus(hasKey = true, maskedKey = Some(CryptoUtils.maskKey(cleanedKey))))
       }
     }
 

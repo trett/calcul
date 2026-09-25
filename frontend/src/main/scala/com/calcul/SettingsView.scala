@@ -107,6 +107,10 @@ object SettingsView:
               slIcon(slName := "box-arrow-up-right"),
               "Get a free Gemini API key from Google AI Studio"
             )
+          ),
+          p(
+            styleAttr := "font-size: 0.75rem; color: var(--sl-color-neutral-500); margin: 0.35rem 0 0 0;",
+            "Ensure you use a Gemini API key (starts with AIzaSy...), not a Google OAuth Client ID or Secret."
           )
         ),
 
@@ -154,7 +158,11 @@ object SettingsView:
                   AppState.isSettingsOpen.set(false)
                 case scala.util.Failure(err) =>
                   isSubmitting.set(false)
-                  errorMessage.set(Some(s"Key validation failed: ${err.getMessage}"))
+                  val msg = err.getMessage
+                  val cleanMsg =
+                    if msg.startsWith("Invalid Gemini API key:") then msg
+                    else s"Key validation failed: $msg"
+                  errorMessage.set(Some(cleanMsg))
               }
           }
         )

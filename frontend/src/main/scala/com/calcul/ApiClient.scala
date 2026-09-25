@@ -28,22 +28,36 @@ object ApiClient:
 
     dom.Fetch.fetch(path, init).toFuture
 
+  private def extractErrorMessage(res: Response, defaultPrefix: String): Future[String] =
+    res
+      .text()
+      .toFuture
+      .map { body =>
+        val clean = body.trim
+        if clean.nonEmpty then clean
+        else if Option(res.statusText).exists(_.trim.nonEmpty) then s"$defaultPrefix: ${res.statusText}"
+        else s"$defaultPrefix (status ${res.status})"
+      }
+      .recover { _ =>
+        s"$defaultPrefix (status ${res.status})"
+      }
+
   private def getJson[T: Reader](path: String): Future[T] =
     request(path, HttpMethod.GET, httpContentType = None).flatMap: res =>
       if res.ok then res.text().toFuture.map(read[T](_))
-      else Future.failed(new RuntimeException(s"GET $path failed with status ${res.status}: ${res.statusText}"))
+      else extractErrorMessage(res, s"GET $path failed").flatMap(msg => Future.failed(new RuntimeException(msg)))
 
   private def postJson[Req: Writer, Res: Reader](path: String, payload: Req): Future[Res] =
     val json = write(payload)
     request(path, HttpMethod.POST, httpBody = Some(json)).flatMap: res =>
       if res.ok then res.text().toFuture.map(read[Res](_))
-      else Future.failed(new RuntimeException(s"POST $path failed with status ${res.status}: ${res.statusText}"))
+      else extractErrorMessage(res, s"POST $path failed").flatMap(msg => Future.failed(new RuntimeException(msg)))
 
   private def putJson[Req: Writer, Res: Reader](path: String, payload: Req): Future[Res] =
     val json = write(payload)
     request(path, HttpMethod.PUT, httpBody = Some(json)).flatMap: res =>
       if res.ok then res.text().toFuture.map(read[Res](_))
-      else Future.failed(new RuntimeException(s"PUT $path failed with status ${res.status}: ${res.statusText}"))
+      else extractErrorMessage(res, s"PUT $path failed").flatMap(msg => Future.failed(new RuntimeException(msg)))
 
   // --- Auth APIs ---
   def getLoginUrl(): Future[String] =
@@ -103,4 +117,4 @@ object ApiClient:
   def deleteGeminiKey(): Future[String] =
     request("/api/user/settings/gemini-key", HttpMethod.DELETE, httpContentType = None).flatMap: res =>
       if res.ok then res.text().toFuture
-      else Future.failed(new RuntimeException(s"Delete Gemini key failed: ${res.status}"))
+      else extractErrorMessage(res, "Delete Gemini key failed").flatMap(msg => Future.failed(new RuntimeException(msg)))
