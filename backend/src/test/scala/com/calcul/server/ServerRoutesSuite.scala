@@ -108,7 +108,9 @@ class ServerRoutesSuite extends FunSuite:
       // Test standard callback endpoint (/api/auth/callback) with mock code
       val res1 = routes.callbackRoute.logic(sttp.monad.IdentityMonad)(())("mock-code-123")
       assert(res1.isRight, "Callback route should succeed for mock code")
-      val (cookieOpt1, html1) = res1.toOption.get
+      val (status1, locOpt1, cookieOpt1, html1) = res1.toOption.get
+      assertEquals(status1, sttp.model.StatusCode.Found)
+      assertEquals(locOpt1, Some("/"))
       assert(cookieOpt1.isDefined, "Session cookie header should be set")
       assert(cookieOpt1.get.contains("session="), "Cookie should contain session token")
       assert(html1.contains("Logging in"), "Should return redirect HTML")
@@ -116,7 +118,9 @@ class ServerRoutesSuite extends FunSuite:
       // Test legacy callback endpoint (/auth/callback) with mock code
       val res2 = routes.legacyCallbackRoute.logic(sttp.monad.IdentityMonad)(())("mock-code-456")
       assert(res2.isRight, "Legacy callback route should succeed for mock code")
-      val (cookieOpt2, html2) = res2.toOption.get
+      val (status2, locOpt2, cookieOpt2, html2) = res2.toOption.get
+      assertEquals(status2, sttp.model.StatusCode.Found)
+      assertEquals(locOpt2, Some("/"))
       assert(cookieOpt2.isDefined, "Session cookie header should be set on legacy route")
       assert(cookieOpt2.get.contains("session="), "Cookie should contain session token")
       assert(html2.contains("Logging in"), "Should return redirect HTML")

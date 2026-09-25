@@ -15,12 +15,14 @@ object Endpoints:
       .out(stringBody)
       .summary("Initiate Google OAuth2 login")
 
-  val callbackEndpoint: PublicEndpoint[String, Unit, (Option[String], String), Any] =
+  val callbackEndpoint: PublicEndpoint[String, Unit, (StatusCode, Option[String], Option[String], String), Any] =
     endpoint.get
       .in("api" / "auth" / "callback")
       .in(query[String]("code"))
+      .out(statusCode)
+      .out(header[Option[String]]("Location"))
       .out(header[Option[String]]("Set-Cookie"))
-      .out(stringBody)
+      .out(htmlBodyUtf8)
       .summary("Google OAuth2 callback exchange")
 
   val meEndpoint: PublicEndpoint[Option[String], (StatusCode, String), UserSummary, Any] =

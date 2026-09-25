@@ -52,7 +52,7 @@ class ServerRoutes(
   val loginRoute: ServerEndpoint[Any, Identity] =
     Endpoints.loginEndpoint.serverLogicSuccess[Identity](_ => authService.loginUrl("auth_state"))
 
-  private def handleCallback(code: String): (Option[String], String) =
+  private def handleCallback(code: String): (StatusCode, Option[String], Option[String], String) =
     Try {
       val googleUserOpt = authService.exchangeGoogleCode(code)
       val userSummaryOpt = googleUserOpt match
@@ -71,6 +71,7 @@ class ServerRoutes(
             """<!DOCTYPE html>
               |<html>
               |<head>
+              |  <title>Redirecting...</title>
               |  <meta http-equiv="refresh" content="0;url=/">
               |  <script>window.location.href="/";</script>
               |</head>
@@ -78,7 +79,7 @@ class ServerRoutes(
               |  <p>Logging in, please wait... <a href="/">Click here if not redirected</a>.</p>
               |</body>
               |</html>""".stripMargin
-          (Some(cookieHeader), redirectHtml)
+          (StatusCode.Found, Some("/"), Some(cookieHeader), redirectHtml)
         case None =>
           logger.error("Authentication failed: unable to obtain user profile from Google OAuth code")
           val errorHtml =
@@ -91,7 +92,7 @@ class ServerRoutes(
               |  <a href="/" style="display: inline-block; padding: 10px 20px; background-color: #2563eb; color: white; text-decoration: none; border-radius: 6px; font-weight: 500;">Back to Home</a>
               |</body>
               |</html>""".stripMargin
-          (None, errorHtml)
+          (StatusCode.BadRequest, None, None, errorHtml)
     } match
       case scala.util.Success(res) => res
       case scala.util.Failure(ex) =>
@@ -106,7 +107,7 @@ class ServerRoutes(
              |  <a href="/" style="display: inline-block; padding: 10px 20px; background-color: #2563eb; color: white; text-decoration: none; border-radius: 6px; font-weight: 500;">Back to Home</a>
              |</body>
              |</html>""".stripMargin
-        (None, errorHtml)
+        (StatusCode.InternalServerError, None, None, errorHtml)
 
   val callbackRoute =
     Endpoints.callbackEndpoint.serverLogicSuccess[Identity](handleCallback)
@@ -115,8 +116,10 @@ class ServerRoutes(
     sttp.tapir.endpoint.get
       .in("auth" / "callback")
       .in(sttp.tapir.query[String]("code"))
+      .out(sttp.tapir.statusCode)
+      .out(sttp.tapir.header[Option[String]]("Location"))
       .out(sttp.tapir.header[Option[String]]("Set-Cookie"))
-      .out(sttp.tapir.stringBody)
+      .out(sttp.tapir.htmlBodyUtf8)
       .summary("Legacy /auth/callback alias for Google OAuth2")
       .serverLogicSuccess[Identity](handleCallback)
 
