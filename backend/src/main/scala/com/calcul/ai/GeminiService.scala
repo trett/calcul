@@ -4,10 +4,13 @@ import java.net.URI
 import java.net.http.{HttpClient, HttpRequest, HttpResponse}
 import java.nio.charset.StandardCharsets
 import java.time.Duration
+import org.slf4j.LoggerFactory
 import scala.util.Try
 import com.calcul.model.{AnalyzedItem, MealAnalysisResponse}
 
 class GeminiService:
+
+  private val logger = LoggerFactory.getLogger(getClass)
 
   private val httpClient: HttpClient =
     HttpClient
@@ -58,8 +61,13 @@ class GeminiService:
   ): MealAnalysisResponse =
     userApiKey.filter(_.trim.nonEmpty) match
       case Some(key) =>
-        Try(callGeminiApi(key.trim, description.getOrElse("Meal photo nutritional analysis"), base64Image, mimeType))
-          .getOrElse(fallbackEstimation(description.getOrElse("Meal")))
+        Try(
+          callGeminiApi(key.trim, description.getOrElse("Meal photo nutritional analysis"), base64Image, mimeType)
+        ) match
+          case scala.util.Success(res) => res
+          case scala.util.Failure(ex) =>
+            logger.warn(s"Gemini API call failed with exception, falling back to local estimation: ${ex.getMessage}")
+            fallbackEstimation(description.getOrElse("Meal"))
       case None =>
         fallbackEstimation(description.getOrElse("Meal"))
 
@@ -123,8 +131,12 @@ class GeminiService:
       val textContent = respJson("candidates")(0)("content")("parts")(0)("text").str
       GeminiService.parseGeminiResponse(textContent) match
         case Right(res) => res
-        case Left(_)    => fallbackEstimation(prompt)
-    else fallbackEstimation(prompt)
+        case Left(err) =>
+          logger.warn(s"Failed to parse Gemini response JSON, falling back: $err")
+          fallbackEstimation(prompt)
+    else
+      logger.warn(s"Gemini API responded with HTTP status ${response.statusCode()}: ${response.body()}")
+      fallbackEstimation(prompt)
 
   private def fallbackEstimation(description: String): MealAnalysisResponse =
     val words = description.toLowerCase

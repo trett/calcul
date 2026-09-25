@@ -3,11 +3,12 @@ package com.calcul.auth
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
-import java.time.Instant
+import java.time.{Duration, Instant}
 import java.util.{Base64, UUID}
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
-import scala.util.Try
+import org.slf4j.LoggerFactory
+import scala.util.{Failure, Success, Try}
 import com.calcul.db.UserRepository
 import com.calcul.model.{User, UserSummary}
 
@@ -37,6 +38,14 @@ final case class GoogleUserInfo(
 )
 
 class AuthService(userRepo: UserRepository, config: AuthConfig):
+
+  private val logger = LoggerFactory.getLogger(getClass)
+
+  private val httpClient: java.net.http.HttpClient =
+    java.net.http.HttpClient
+      .newBuilder()
+      .connectTimeout(Duration.ofSeconds(10))
+      .build()
 
   def loginUrl(state: String): String =
     val encodedRedirect = URLEncoder.encode(config.redirectUri, StandardCharsets.UTF_8.toString)
@@ -79,6 +88,7 @@ class AuthService(userRepo: UserRepository, config: AuthConfig):
       code.startsWith("demo") ||
       code == "google-demo-user"
     then
+      logger.info("Using mock Google OAuth credentials for authorization code exchange")
       Some(
         GoogleUserInfo(
           googleId = "google-demo-user",
@@ -89,8 +99,6 @@ class AuthService(userRepo: UserRepository, config: AuthConfig):
       )
     else
       Try {
-        val client = java.net.http.HttpClient.newHttpClient()
-
         val formParams = Map(
           "code"          -> code,
           "client_id"     -> config.clientId,
@@ -107,11 +115,14 @@ class AuthService(userRepo: UserRepository, config: AuthConfig):
         val tokenReq = java.net.http.HttpRequest
           .newBuilder()
           .uri(java.net.URI.create("https://oauth2.googleapis.com/token"))
+          .timeout(Duration.ofSeconds(15))
           .header("Content-Type", "application/x-www-form-urlencoded")
           .POST(java.net.http.HttpRequest.BodyPublishers.ofString(formBody, StandardCharsets.UTF_8))
           .build()
 
-        val tokenRes = client.send(tokenReq, java.net.http.HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8))
+        logger.info(s"Exchanging Google OAuth2 authorization code with redirect_uri: ${config.redirectUri}")
+        val tokenRes =
+          httpClient.send(tokenReq, java.net.http.HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8))
         if tokenRes.statusCode() == 200 then
           val tokenJson   = ujson.read(tokenRes.body())
           val accessToken = tokenJson("access_token").str
@@ -119,24 +130,37 @@ class AuthService(userRepo: UserRepository, config: AuthConfig):
           val userinfoReq = java.net.http.HttpRequest
             .newBuilder()
             .uri(java.net.URI.create("https://openidconnect.googleapis.com/v1/userinfo"))
+            .timeout(Duration.ofSeconds(15))
             .header("Authorization", s"Bearer $accessToken")
             .GET()
             .build()
 
           val userinfoRes =
-            client.send(userinfoReq, java.net.http.HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8))
+            httpClient.send(userinfoReq, java.net.http.HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8))
           if userinfoRes.statusCode() == 200 then
             val userJson = ujson.read(userinfoRes.body())
             val googleId = userJson("sub").str
             val email    = userJson("email").str
             val name     = if userJson.obj.contains("name") then userJson("name").str else email.takeWhile(_ != '@')
             val pic      = if userJson.obj.contains("picture") then Some(userJson("picture").str) else None
+            logger.info(s"Google OAuth2 authentication succeeded for email: $email")
             Some(GoogleUserInfo(googleId, email, name, pic))
-          else None
-        else None
-      }.toOption.flatten
+          else
+            logger.error(
+              s"Google userinfo request failed with status ${userinfoRes.statusCode()}: ${userinfoRes.body()}"
+            )
+            None
+        else
+          logger.error(s"Google token exchange failed with status ${tokenRes.statusCode()}: ${tokenRes.body()}")
+          None
+      } match
+        case Success(result) => result
+        case Failure(ex) =>
+          logger.error("Exception occurred during Google OAuth code exchange", ex)
+          None
 
   def handleGoogleUser(googleId: String, email: String, name: String, pictureUrl: Option[String]): UserSummary =
+    logger.info(s"Handling login for user: email=$email, googleId=$googleId")
     val existing = userRepo.findByGoogleId(googleId)
     val user = existing match
       case Some(u) =>

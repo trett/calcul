@@ -27,6 +27,7 @@ val laminarVersion = "17.2.1"
 val laminarShoelaceVersion = "0.2.0"
 val postgresqlVersion = "42.7.5"
 val hikariVersion = "6.2.0"
+val slf4jVersion = "2.0.17"
 val munitVersion = "1.1.0"
 
 lazy val buildImage = taskKey[Unit]("Build docker image")
@@ -134,6 +135,8 @@ lazy val backend = (project in file("backend"))
       "com.softwaremill.sttp.ai" %% "gemini" % sttpAiVersion,
       "org.postgresql" % "postgresql" % postgresqlVersion,
       "com.zaxxer" % "HikariCP" % hikariVersion,
+      "org.slf4j" % "slf4j-api" % slf4jVersion,
+      "org.slf4j" % "slf4j-simple" % slf4jVersion,
       "org.testcontainers" % "postgresql" % "1.20.4" % Test,
       "org.scalameta" %% "munit" % munitVersion % Test
     )

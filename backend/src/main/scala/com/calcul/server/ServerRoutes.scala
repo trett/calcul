@@ -5,6 +5,7 @@ import java.sql.Connection
 import java.time.LocalDate
 import java.util.UUID
 import javax.sql.DataSource
+import org.slf4j.LoggerFactory
 import scala.util.{Try, Using}
 import sttp.model.StatusCode
 import sttp.shared.Identity
@@ -39,6 +40,8 @@ class ServerRoutes(
   val weightService: WeightService      = new WeightService(transactor)
   val authService: AuthService          = new AuthService(userRepo, authConfig)
 
+  private val logger = LoggerFactory.getLogger(getClass)
+
   val defaultUserId: UUID = UUID.fromString("00000000-0000-0000-0000-000000000001")
 
   private def authenticate(sessionCookieOpt: Option[String]): Either[(StatusCode, String), User] =
@@ -49,30 +52,73 @@ class ServerRoutes(
   val loginRoute: ServerEndpoint[Any, Identity] =
     Endpoints.loginEndpoint.serverLogicSuccess[Identity](_ => authService.loginUrl("auth_state"))
 
-  val callbackRoute: ServerEndpoint[Any, Identity] =
-    Endpoints.callbackEndpoint.serverLogicSuccess[Identity] { code =>
+  private def handleCallback(code: String): (Option[String], String) =
+    Try {
       val googleUserOpt = authService.exchangeGoogleCode(code)
-      val userSummary = googleUserOpt match
+      val userSummaryOpt = googleUserOpt match
         case Some(gu) =>
-          authService.handleGoogleUser(gu.googleId, gu.email, gu.name, gu.pictureUrl)
+          Some(authService.handleGoogleUser(gu.googleId, gu.email, gu.name, gu.pictureUrl))
         case None =>
-          authService.handleGoogleUser("google-demo-user", "user@example.com", "Demo User", None)
+          if authConfig.clientId.startsWith("mock-") || authConfig.clientSecret.startsWith("mock-") then
+            Some(authService.handleGoogleUser("google-demo-user", "user@example.com", "Demo User", None))
+          else None
 
-      val sessionToken = authService.createSessionToken(userSummary.id)
-      val cookieHeader = s"session=$sessionToken; Path=/; HttpOnly; SameSite=Lax; Max-Age=2592000"
-      val redirectHtml =
-        """<!DOCTYPE html>
-          |<html>
-          |<head>
-          |  <meta http-equiv="refresh" content="0;url=/">
-          |  <script>window.location.href="/";</script>
-          |</head>
-          |<body>
-          |  <p>Logging in, please wait... <a href="/">Click here if not redirected</a>.</p>
-          |</body>
-          |</html>""".stripMargin
-      (Some(cookieHeader), redirectHtml)
-    }
+      userSummaryOpt match
+        case Some(userSummary) =>
+          val sessionToken = authService.createSessionToken(userSummary.id)
+          val cookieHeader = s"session=$sessionToken; Path=/; HttpOnly; SameSite=Lax; Max-Age=2592000"
+          val redirectHtml =
+            """<!DOCTYPE html>
+              |<html>
+              |<head>
+              |  <meta http-equiv="refresh" content="0;url=/">
+              |  <script>window.location.href="/";</script>
+              |</head>
+              |<body>
+              |  <p>Logging in, please wait... <a href="/">Click here if not redirected</a>.</p>
+              |</body>
+              |</html>""".stripMargin
+          (Some(cookieHeader), redirectHtml)
+        case None =>
+          logger.error("Authentication failed: unable to obtain user profile from Google OAuth code")
+          val errorHtml =
+            """<!DOCTYPE html>
+              |<html>
+              |<head><title>Sign-in Failed</title></head>
+              |<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; text-align: center; padding: 60px 20px;">
+              |  <h2 style="color: #dc2626;">Sign-in Failed</h2>
+              |  <p style="color: #4b5563; max-width: 500px; margin: 0 auto 24px auto;">Could not sign in with Google. Please verify that your GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, and GOOGLE_REDIRECT_URI match your Google Cloud Console OAuth configuration.</p>
+              |  <a href="/" style="display: inline-block; padding: 10px 20px; background-color: #2563eb; color: white; text-decoration: none; border-radius: 6px; font-weight: 500;">Back to Home</a>
+              |</body>
+              |</html>""".stripMargin
+          (None, errorHtml)
+    } match
+      case scala.util.Success(res) => res
+      case scala.util.Failure(ex) =>
+        logger.error(s"Unexpected error during Google OAuth callback processing", ex)
+        val errorHtml =
+          s"""<!DOCTYPE html>
+             |<html>
+             |<head><title>Authentication Error</title></head>
+             |<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; text-align: center; padding: 60px 20px;">
+             |  <h2 style="color: #dc2626;">Authentication Error</h2>
+             |  <p style="color: #4b5563; max-width: 500px; margin: 0 auto 24px auto;">An error occurred while completing authentication. Check server logs for details.</p>
+             |  <a href="/" style="display: inline-block; padding: 10px 20px; background-color: #2563eb; color: white; text-decoration: none; border-radius: 6px; font-weight: 500;">Back to Home</a>
+             |</body>
+             |</html>""".stripMargin
+        (None, errorHtml)
+
+  val callbackRoute =
+    Endpoints.callbackEndpoint.serverLogicSuccess[Identity](handleCallback)
+
+  val legacyCallbackRoute =
+    sttp.tapir.endpoint.get
+      .in("auth" / "callback")
+      .in(sttp.tapir.query[String]("code"))
+      .out(sttp.tapir.header[Option[String]]("Set-Cookie"))
+      .out(sttp.tapir.stringBody)
+      .summary("Legacy /auth/callback alias for Google OAuth2")
+      .serverLogicSuccess[Identity](handleCallback)
 
   val meRoute =
     Endpoints.meEndpoint.serverLogic[Identity] { sessionCookieOpt =>
@@ -234,6 +280,7 @@ class ServerRoutes(
     assetsRoute,
     loginRoute,
     callbackRoute,
+    legacyCallbackRoute,
     meRoute,
     logoutRoute,
     analyzeMealRoute,

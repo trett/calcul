@@ -9,7 +9,7 @@ class ServerRoutesSuite extends FunSuite:
     val conn = TestPostgresContainer.newConnection()
     try
       val routes = new ServerRoutes(conn)
-      assertEquals(routes.allRoutes.size, 18)
+      assertEquals(routes.allRoutes.size, 19)
       val server = routes.createServer(port = 8089)
       assert(Option(server).isDefined, "Server should be initialized")
     finally conn.close()
@@ -97,5 +97,28 @@ class ServerRoutesSuite extends FunSuite:
       // Key status now shows no key
       val getRes3 = routes.getGeminiKeyStatusRoute.logic(sttp.monad.IdentityMonad)(())(Some(token))
       assertEquals(getRes3, Right(com.calcul.model.GeminiKeyStatus(hasKey = false, maskedKey = None)))
+    finally conn.close()
+  }
+
+  test("callbackRoute and legacyCallbackRoute handle OAuth code exchange") {
+    val conn = TestPostgresContainer.newConnection()
+    try
+      val routes = new ServerRoutes(conn)
+
+      // Test standard callback endpoint (/api/auth/callback) with mock code
+      val res1 = routes.callbackRoute.logic(sttp.monad.IdentityMonad)(())("mock-code-123")
+      assert(res1.isRight, "Callback route should succeed for mock code")
+      val (cookieOpt1, html1) = res1.toOption.get
+      assert(cookieOpt1.isDefined, "Session cookie header should be set")
+      assert(cookieOpt1.get.contains("session="), "Cookie should contain session token")
+      assert(html1.contains("Logging in"), "Should return redirect HTML")
+
+      // Test legacy callback endpoint (/auth/callback) with mock code
+      val res2 = routes.legacyCallbackRoute.logic(sttp.monad.IdentityMonad)(())("mock-code-456")
+      assert(res2.isRight, "Legacy callback route should succeed for mock code")
+      val (cookieOpt2, html2) = res2.toOption.get
+      assert(cookieOpt2.isDefined, "Session cookie header should be set on legacy route")
+      assert(cookieOpt2.get.contains("session="), "Cookie should contain session token")
+      assert(html2.contains("Logging in"), "Should return redirect HTML")
     finally conn.close()
   }

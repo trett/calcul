@@ -50,5 +50,23 @@ class AuthServiceSuite extends FunSuite:
       val fromDb = userRepo.findByGoogleId("g-user-999")
       assert(fromDb.isDefined, "User should be persisted in DB")
       assertEquals(fromDb.get.id, user.id)
+
+      // 4. Mock code exchange
+      val mockUserInfo = authService.exchangeGoogleCode("mock-auth-code")
+      assert(mockUserInfo.isDefined, "Mock code should return valid mock user info")
+      assertEquals(mockUserInfo.get.email, "user@example.com")
+
+      // 5. Invalid real code does not throw, returns None and logs error
+      val realConfigAuth = new AuthService(
+        userRepo,
+        AuthConfig(
+          "real-client-id.apps.googleusercontent.com",
+          "real-secret",
+          "http://localhost:8080/api/auth/callback",
+          "key-secret-at-least-32-chars-long"
+        )
+      )
+      val invalidExchange = realConfigAuth.exchangeGoogleCode("invalid-code")
+      assertEquals(invalidExchange, None, "Invalid Google OAuth code exchange should return None gracefully")
     finally conn.close()
   }

@@ -4,7 +4,7 @@ import java.sql.{Connection, Date as SqlDate, ResultSet, Timestamp}
 import java.time.LocalDate
 import java.util.UUID
 import javax.sql.DataSource
-import scala.util.Using
+import scala.util.{Try, Using}
 import com.calcul.model.*
 
 class UserRepository(transactor: DbTransactor):
@@ -21,13 +21,12 @@ class UserRepository(transactor: DbTransactor):
           |DO UPDATE SET email = EXCLUDED.email, name = EXCLUDED.name, picture_url = EXCLUDED.picture_url
         """.stripMargin
       Using.resource(conn.prepareStatement(sql)) { ps =>
-        val nullStr = Option.empty[String].orNull
         ps.setObject(1, user.id)
         ps.setString(2, user.googleId)
         ps.setString(3, user.email)
         ps.setString(4, user.name)
         ps.setString(5, user.pictureUrl.orNull)
-        ps.setString(6, user.encryptedGeminiApiKey.getOrElse(nullStr))
+        ps.setString(6, user.encryptedGeminiApiKey.orNull)
         ps.setTimestamp(7, Timestamp.from(user.createdAt))
         ps.executeUpdate()
       }
@@ -88,14 +87,21 @@ class UserRepository(transactor: DbTransactor):
     }
 
   private def mapUser(rs: ResultSet): User =
+    val idObj = rs.getObject("id")
+    val id = idObj match
+      case u: UUID   => u
+      case s: String => UUID.fromString(s)
+      case other     => UUID.fromString(other.toString)
+    val encKey    = Try(rs.getString("encrypted_gemini_api_key")).toOption.flatMap(Option(_))
+    val createdAt = Option(rs.getTimestamp("created_at")).map(_.toInstant).getOrElse(java.time.Instant.now())
     User(
-      id = rs.getObject("id", classOf[UUID]),
+      id = id,
       googleId = rs.getString("google_id"),
       email = rs.getString("email"),
       name = rs.getString("name"),
       pictureUrl = Option(rs.getString("picture_url")),
-      createdAt = rs.getTimestamp("created_at").toInstant,
-      encryptedGeminiApiKey = Option(rs.getString("encrypted_gemini_api_key"))
+      createdAt = createdAt,
+      encryptedGeminiApiKey = encKey
     )
 
 class DailyTargetRepository(transactor: DbTransactor):
