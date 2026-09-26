@@ -1,12 +1,10 @@
--- Schema initialization for AI Calorie & Weight Tracker
--- Designed for PostgreSQL, reflection-free, executed directly or via docker-entrypoint-initdb.d
-
 CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY,
     google_id VARCHAR(255) NOT NULL UNIQUE,
     email VARCHAR(255) NOT NULL,
     name VARCHAR(255) NOT NULL,
     picture_url VARCHAR(1024),
+    encrypted_gemini_api_key TEXT,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 

@@ -1,0 +1,8 @@
+{
+  "track_id": "user_gemini_key_and_auth_20260924",
+  "type": "feature",
+  "status": "completed",
+  "created_at": "2026-09-24T18:43:15Z",
+  "updated_at": "2026-09-24T19:40:00Z",
+  "description": "User-provided Gemini API key in settings and authentication gating for app functionality"
+}

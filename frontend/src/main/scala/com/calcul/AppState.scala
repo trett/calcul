@@ -17,6 +17,8 @@ object AppState:
   val meals: Var[List[Meal]]                         = Var(Nil)
   val weights: Var[List[DailyWeight]]                = Var(Nil)
   val isLoading: Var[Boolean]                        = Var(false)
+  val isAuthChecking: Var[Boolean]                   = Var(true)
+  val isSettingsOpen: Var[Boolean]                   = Var(false)
 
   private def loadSavedTheme(): String =
     Option(dom.window.localStorage.getItem("caltrack_theme")).filter(_.nonEmpty).getOrElse("light")
@@ -44,6 +46,18 @@ object AppState:
     notification.set(Some((variant, message)))
     dom.window.setTimeout(() => notification.set(None), 4000)
 
+  def checkUrlAuthErrors(): Unit =
+    try
+      val search = Option(dom.window.location.search).getOrElse("")
+      if search.contains("auth_error") then
+        notify("Sign-in failed. Please verify your Google OAuth credentials or try again.", "danger")
+        Option(dom.window.history).foreach { hist =>
+          Option(dom.window.location.pathname).foreach { path =>
+            hist.replaceState("", "", path)
+          }
+        }
+    catch case _: Throwable => ()
+
   def setDate(d: LocalDate): Unit =
     selectedDate.set(d)
     loadDailyData()
@@ -58,10 +72,18 @@ object AppState:
     setDate(DateUtils.today())
 
   def loadCurrentUser(): Unit =
+    isAuthChecking.set(true)
     ApiClient
       .getCurrentUser()
-      .foreach: userOpt =>
-        currentUser.set(userOpt)
+      .onComplete {
+        case scala.util.Success(userOpt) =>
+          currentUser.set(userOpt)
+          isAuthChecking.set(false)
+          if userOpt.isDefined then loadDailyData()
+        case scala.util.Failure(_) =>
+          currentUser.set(None)
+          isAuthChecking.set(false)
+      }
 
   def loadDailyData(): Unit =
     val d = selectedDate.now()

@@ -287,7 +287,7 @@ object DashboardView:
           input(
             tpe         := "number",
             placeholder := "2000",
-            styleAttr := "padding: 0.5rem 0.75rem; border: 1px solid var(--sl-color-neutral-300); border-radius: var(--sl-border-radius-medium); font-size: 1rem;",
+            styleAttr := "box-sizing: border-box; width: 100%; padding: 0.5rem 0.75rem; border: 1px solid var(--sl-color-neutral-300); border-radius: var(--sl-border-radius-medium); font-size: 1rem;",
             controlled(
               value <-- targetInput.signal,
               onInput.mapToValue --> targetInput.writer

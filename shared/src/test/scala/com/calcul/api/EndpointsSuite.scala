@@ -18,8 +18,9 @@ class EndpointsSuite extends FunSuite:
     assert(paths.exists(_.startsWith("/api/calories/daily")), "Should have daily calories path")
     assert(paths.exists(_.startsWith("/api/calories/target")), "Should have calorie target path")
     assert(paths.exists(_.startsWith("/api/weights")), "Should have weights path")
+    assert(paths.exists(_.startsWith("/api/user/settings/gemini-key")), "Should have user settings gemini-key path")
   }
 
   test("Endpoints.allEndpoints count matches total declared endpoints") {
-    assertEquals(Endpoints.allEndpoints.size, 12)
+    assertEquals(Endpoints.allEndpoints.size, 15)
   }

@@ -26,63 +26,72 @@ object HeaderView:
         )
       ),
 
-      // Date Navigator
-      div(
-        styleAttr := "display: flex; align-items: center; gap: 0.4rem;",
-        slButton(
-          slSize    := "small",
-          slVariant := "neutral",
-          slIcon(slName := "chevron-left"),
-          onClick --> (_ => AppState.setPreviousDay())
-        ),
-        slButton(
-          slSize    := "small",
-          slVariant := "default",
-          child.text <-- AppState.selectedDate.signal.map { d =>
-            if d == DateUtils.today() then s"Today, $d" else d.toString
-          },
-          onClick --> (_ => AppState.setToday())
-        ),
-        slButton(
-          slSize    := "small",
-          slVariant := "neutral",
-          slIcon(slName := "chevron-right"),
-          onClick --> (_ => AppState.setNextDay())
-        ),
-        input(
-          tpe := "date",
-          cls := "date-picker-input",
-          styleAttr := "padding: 0.25rem 0.5rem; border: 1px solid var(--sl-color-neutral-300); border-radius: var(--sl-border-radius-medium); font-size: 0.85rem; background: var(--sl-input-background-color); color: var(--sl-color-neutral-900);",
-          value <-- AppState.selectedDate.signal.map(_.toString),
-          onChange.mapToValue --> { v =>
-            Option(v).filter(_.nonEmpty).foreach { str =>
-              try AppState.setDate(LocalDate.parse(str))
-              catch case _: Exception => ()
-            }
-          }
-        )
-      ),
-
-      // Navigation Tabs (Dashboard vs Weight History)
-      slButtonGroup(
-        slButton(
-          slSize := "small",
-          slVariant <-- AppState.activeTab.signal.map(t => if t == "dashboard" then "primary" else "default"),
-          slIcon(slName := "calendar3", styleAttr := "margin-right: 0.35rem;"),
-          "Dashboard",
-          onClick --> (_ => AppState.activeTab.set("dashboard"))
-        ),
-        slButton(
-          slSize := "small",
-          slVariant <-- AppState.activeTab.signal.map(t => if t == "weights" then "primary" else "default"),
-          slIcon(slName := "speedometer2", styleAttr := "margin-right: 0.35rem;"),
-          "Weight History",
-          onClick --> { _ =>
-            AppState.activeTab.set("weights")
-            AppState.loadWeights()
-          }
-        )
-      ),
+      // Authenticated Navigation: Date Navigator & Navigation Tabs
+      child.maybe <-- AppState.currentUser.signal.map {
+        case Some(_) =>
+          Some(
+            div(
+              styleAttr := "display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;",
+              // Date Navigator
+              div(
+                styleAttr := "display: flex; align-items: center; gap: 0.4rem;",
+                slButton(
+                  slSize    := "small",
+                  slVariant := "neutral",
+                  slIcon(slName := "chevron-left"),
+                  onClick --> (_ => AppState.setPreviousDay())
+                ),
+                slButton(
+                  slSize    := "small",
+                  slVariant := "default",
+                  child.text <-- AppState.selectedDate.signal.map { d =>
+                    if d == DateUtils.today() then s"Today, $d" else d.toString
+                  },
+                  onClick --> (_ => AppState.setToday())
+                ),
+                slButton(
+                  slSize    := "small",
+                  slVariant := "neutral",
+                  slIcon(slName := "chevron-right"),
+                  onClick --> (_ => AppState.setNextDay())
+                ),
+                input(
+                  tpe := "date",
+                  cls := "date-picker-input",
+                  styleAttr := "padding: 0.25rem 0.5rem; border: 1px solid var(--sl-color-neutral-300); border-radius: var(--sl-border-radius-medium); font-size: 0.85rem; background: var(--sl-input-background-color); color: var(--sl-color-neutral-900);",
+                  value <-- AppState.selectedDate.signal.map(_.toString),
+                  onChange.mapToValue --> { v =>
+                    Option(v).filter(_.nonEmpty).foreach { str =>
+                      try AppState.setDate(LocalDate.parse(str))
+                      catch case _: Exception => ()
+                    }
+                  }
+                )
+              ),
+              // Navigation Tabs (Dashboard vs Weight History)
+              slButtonGroup(
+                slButton(
+                  slSize := "small",
+                  slVariant <-- AppState.activeTab.signal.map(t => if t == "dashboard" then "primary" else "default"),
+                  slIcon(slName := "calendar3", styleAttr := "margin-right: 0.35rem;"),
+                  "Dashboard",
+                  onClick --> (_ => AppState.activeTab.set("dashboard"))
+                ),
+                slButton(
+                  slSize := "small",
+                  slVariant <-- AppState.activeTab.signal.map(t => if t == "weights" then "primary" else "default"),
+                  slIcon(slName := "speedometer2", styleAttr := "margin-right: 0.35rem;"),
+                  "Weight History",
+                  onClick --> { _ =>
+                    AppState.activeTab.set("weights")
+                    AppState.loadWeights()
+                  }
+                )
+              )
+            )
+          )
+        case None => None
+      },
 
       // Right Section: Theme Toggle & User Profile
       div(
@@ -110,6 +119,13 @@ object HeaderView:
               span(
                 styleAttr := "font-size: 0.9rem; font-weight: 500; color: var(--sl-color-neutral-800);",
                 u.name
+              ),
+              slButton(
+                slSize    := "small",
+                slVariant := "neutral",
+                slIcon(slName := "gear", slSlot := "prefix"),
+                "Settings",
+                onClick --> (_ => AppState.isSettingsOpen.set(true))
               ),
               slButton(
                 slSize    := "small",

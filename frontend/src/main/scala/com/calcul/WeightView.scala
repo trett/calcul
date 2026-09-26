@@ -82,7 +82,7 @@ object WeightView:
               tpe         := "number",
               stepAttr    := "0.1",
               placeholder := "e.g. 75.5",
-              styleAttr := "padding: 0.45rem 0.75rem; border: 1px solid var(--sl-color-neutral-300); border-radius: var(--sl-border-radius-medium); font-size: 0.95rem; width: 100%;",
+              styleAttr := "box-sizing: border-box; width: 100%; max-width: 100%; padding: 0.45rem 0.75rem; border: 1px solid var(--sl-color-neutral-300); border-radius: var(--sl-border-radius-medium); font-size: 0.95rem;",
               controlled(
                 value <-- weightInputVar.signal,
                 onInput.mapToValue --> weightInputVar.writer

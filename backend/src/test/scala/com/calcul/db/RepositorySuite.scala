@@ -45,6 +45,33 @@ class RepositorySuite extends FunSuite:
     }
   }
 
+  test("UserRepository updates, retrieves, and clears encrypted Gemini API key") {
+    withRepos { (userRepo, _, _, _) =>
+      val userId = UUID.randomUUID()
+      val user = User(
+        id = userId,
+        googleId = "g-key-test",
+        email = "keytest@example.com",
+        name = "Key User",
+        pictureUrl = None,
+        createdAt = Instant.now()
+      )
+      userRepo.upsert(user)
+
+      assertEquals(userRepo.getEncryptedGeminiKey(userId), None)
+
+      userRepo.updateGeminiKey(userId, "enc-key-12345")
+      assertEquals(userRepo.getEncryptedGeminiKey(userId), Some("enc-key-12345"))
+
+      val userWithKey = userRepo.findById(userId)
+      assertEquals(userWithKey.flatMap(_.encryptedGeminiApiKey), Some("enc-key-12345"))
+
+      userRepo.clearGeminiKey(userId)
+      assertEquals(userRepo.getEncryptedGeminiKey(userId), None)
+      assertEquals(userRepo.findById(userId).flatMap(_.encryptedGeminiApiKey), None)
+    }
+  }
+
   test("DailyTargetRepository sets and retrieves daily targets") {
     withRepos { (userRepo, targetRepo, _, _) =>
       val userId = UUID.randomUUID()

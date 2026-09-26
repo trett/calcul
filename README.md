@@ -65,9 +65,6 @@ JDBC_URL=jdbc:postgresql://postgres:5432/calcul
 DB_USER=calcul_user
 DB_PASSWORD=choose_a_strong_database_password_here
 
-# Google Gemini API Key
-GEMINI_API_KEY=your_gemini_api_key_here
-
 # Google OAuth2 Credentials
 GOOGLE_CLIENT_ID=your_client_id.apps.googleusercontent.com
 GOOGLE_CLIENT_SECRET=your_google_client_secret
@@ -228,8 +225,9 @@ docker compose up -d
 | `JDBC_URL` | **Yes** | PostgreSQL connection URL (e.g., `jdbc:postgresql://postgres:5432/calcul`). |
 | `DB_USER` | **Yes** | PostgreSQL database user. |
 | `DB_PASSWORD` | **Yes** | PostgreSQL database password. |
-| `GEMINI_API_KEY` | **Yes** | Google Gemini API Key for meal analysis. |
 | `GOOGLE_CLIENT_ID` | **Yes** | Google OAuth2 Web Client ID. |
 | `GOOGLE_CLIENT_SECRET` | **Yes** | Google OAuth2 Web Client Secret. |
 | `GOOGLE_REDIRECT_URI` | **Yes** | OAuth redirect URL (`https://yourdomain.com/api/auth/callback`). |
-| `SESSION_SECRET` | **Yes** | Random 32+ character key for signing session authentication cookies. |
+| `SESSION_SECRET` | **Yes** | Random 32+ character key for signing session cookies and encrypting user Gemini API keys at rest (AES-256-GCM). |
+
+> **Note:** Gemini API keys are no longer configured via server environment variables. Each user provides their own Gemini API key directly in User Settings within the application.

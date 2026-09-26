@@ -1,5 +1,6 @@
 package com.calcul
 
+import org.slf4j.LoggerFactory
 import ox.*
 import com.calcul.ai.GeminiService
 import com.calcul.auth.AuthConfig
@@ -8,12 +9,13 @@ import com.calcul.server.ServerRoutes
 
 object Main:
 
+  private val logger = LoggerFactory.getLogger(getClass)
+
   def main(args: Array[String]): Unit =
     val dbConfig   = DatabaseConfig.fromEnv()
     val dataSource = DatabaseConfig.createDataSource(dbConfig)
 
-    val geminiApiKey  = sys.env.get("GEMINI_API_KEY")
-    val geminiService = new GeminiService(geminiApiKey)
+    val geminiService = new GeminiService()
     val authConfig    = AuthConfig.fromEnv()
 
     val host = sys.env.getOrElse("HOST", "0.0.0.0")
@@ -23,13 +25,13 @@ object Main:
     val server = routes.createServer(host, port)
 
     sys.addShutdownHook {
-      println("Shutting down CalTrack AI and closing connection pool...")
+      logger.info("Shutting down CalTrack AI and closing connection pool...")
       dataSource.close()
     }
 
-    println(s"Starting CalTrack AI Netty server on $host:$port...")
+    logger.info(s"Starting CalTrack AI Netty server on $host:$port...")
     supervised {
       val binding = server.start()
-      println(s"CalTrack AI server running at http://${binding.hostName}:${binding.port}")
+      logger.info(s"CalTrack AI server running at http://${binding.hostName}:${binding.port}")
       Thread.currentThread().join()
     }

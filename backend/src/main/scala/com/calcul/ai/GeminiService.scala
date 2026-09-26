@@ -1,24 +1,113 @@
 package com.calcul.ai
 
-import java.net.URI
-import java.net.http.{HttpClient, HttpRequest, HttpResponse}
-import java.nio.charset.StandardCharsets
+import org.slf4j.LoggerFactory
+import scala.concurrent.duration.*
 import scala.util.Try
+import sttp.client4.*
+import sttp.model.{StatusCode, Uri}
 import com.calcul.model.{AnalyzedItem, MealAnalysisResponse}
 
-class GeminiService(apiKey: Option[String] = sys.env.get("GEMINI_API_KEY")):
+class GeminiService(
+    backend: SyncBackend = DefaultSyncBackend(BackendOptions.connectionTimeout(10.seconds))
+):
+
+  private val logger = LoggerFactory.getLogger(getClass)
+
+  private val ModelsEndpoint: Uri =
+    uri"https://generativelanguage.googleapis.com/v1beta/models?pageSize=1"
+
+  private val activeModel: java.util.concurrent.atomic.AtomicReference[Option[String]] =
+    new java.util.concurrent.atomic.AtomicReference(sys.env.get("GEMINI_MODEL").filter(_.trim.nonEmpty))
+
+  private def formatModel(model: String): String =
+    val clean = model.trim.stripPrefix("/")
+    if clean.startsWith("models/") then clean else s"models/$clean"
+
+  private def discoverModel(apiKey: String): String =
+    activeModel.get() match
+      case Some(m) => formatModel(m)
+      case None =>
+        val resolved = fetchAvailableModel(apiKey).getOrElse("models/gemini-2.5-flash")
+        activeModel.set(Some(resolved))
+        resolved
+
+  private def fetchAvailableModel(apiKey: String): Option[String] =
+    Try {
+      val response = basicRequest
+        .get(uri"https://generativelanguage.googleapis.com/v1beta/models?pageSize=50")
+        .header("x-goog-api-key", apiKey)
+        .readTimeout(10.seconds)
+        .response(asStringAlways)
+        .send(backend)
+
+      if response.code == StatusCode.Ok then
+        val json   = ujson.read(response.body)
+        val models = json.obj.get("models").map(_.arr.toList).getOrElse(Nil)
+        val validModels = models
+          .filter { m =>
+            val methods = m.obj.get("supportedGenerationMethods").map(_.arr.map(_.str).toList).getOrElse(Nil)
+            methods.contains("generateContent")
+          }
+          .map(_("name").str)
+
+        val flashModel = validModels
+          .find(m => m.contains("flash") && (m.contains("2.5") || m.contains("2.0") || m.contains("3.")))
+          .orElse(validModels.find(_.contains("flash")))
+          .orElse(validModels.headOption)
+
+        flashModel.foreach(m => logger.info(s"Discovered available Gemini model for generateContent: $m"))
+        flashModel
+      else
+        logger.warn(s"ListModels call returned HTTP ${response.code}: ${response.body}")
+        None
+    }.toOption.flatten
+
+  def validateKey(key: String): Either[String, Unit] =
+    val cleaned = key.trim.stripPrefix("\"").stripSuffix("\"").stripPrefix("'").stripSuffix("'").trim
+    if cleaned.isEmpty then Left("API key cannot be empty")
+    else if cleaned.startsWith("mock-") || cleaned.startsWith("demo-") then
+      logger.info("Accepting mock/demo Gemini API key for validation")
+      Right(())
+    else
+      Try {
+        val response = basicRequest
+          .get(ModelsEndpoint)
+          .header("x-goog-api-key", cleaned)
+          .readTimeout(15.seconds)
+          .response(asStringAlways)
+          .send(backend)
+
+        if response.code == StatusCode.Ok then
+          logger.info("Gemini API key validated successfully via Google Generative Language API")
+          Right(())
+        else
+          val status = response.code
+          val body   = response.body
+          logger.warn(s"Gemini API key validation call returned HTTP $status: $body")
+          val detail =
+            Try(ujson.read(body)("error")("message").str).getOrElse(s"HTTP $status")
+          Left(detail)
+      }.toEither.left.map { ex =>
+        logger.error("Failed to reach Gemini API for key validation", ex)
+        s"Failed to reach Gemini API: ${ex.getMessage}"
+      }.flatten
 
   def analyzeMeal(
       description: Option[String],
       base64Image: Option[String] = None,
-      mimeType: Option[String] = None
+      mimeType: Option[String] = None,
+      userApiKey: Option[String] = None
   ): MealAnalysisResponse =
-    apiKey match
-      case Some(key) if key.trim.nonEmpty =>
-        Try(callGeminiApi(key.trim, description.getOrElse("Meal photo nutritional analysis"), base64Image, mimeType))
-          .getOrElse(fallbackEstimation(description.getOrElse("Meal")))
-      case _ =>
-        // Fallback estimation when API key is not configured (e.g. offline dev/testing)
+    userApiKey.filter(_.trim.nonEmpty) match
+      case Some(key) =>
+        Try(
+          callGeminiApi(key.trim, description.getOrElse("Meal photo nutritional analysis"), base64Image, mimeType)
+        ) match
+          case scala.util.Success(res) => res
+          case scala.util.Failure(ex) =>
+            logger.warn(s"Gemini API call failed with exception, falling back to local estimation: ${ex.getMessage}")
+            fallbackEstimation(description.getOrElse("Meal"))
+      case None =>
         fallbackEstimation(description.getOrElse("Meal"))
 
   private def callGeminiApi(
@@ -66,25 +155,32 @@ class GeminiService(apiKey: Option[String] = sys.env.get("GEMINI_API_KEY")):
       )
       .render()
 
-    val client = HttpClient.newHttpClient()
-    val uri = URI.create(
-      s"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=$key"
-    )
-    val request = HttpRequest
-      .newBuilder()
-      .uri(uri)
-      .header("Content-Type", "application/json")
-      .POST(HttpRequest.BodyPublishers.ofString(requestJson, StandardCharsets.UTF_8))
-      .build()
+    val model       = discoverModel(key)
+    val endpointUri = Uri.unsafeParse(s"https://generativelanguage.googleapis.com/v1beta/$model:generateContent")
 
-    val response = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8))
-    if response.statusCode() == 200 then
-      val respJson    = ujson.read(response.body())
+    val response = basicRequest
+      .post(endpointUri)
+      .contentType("application/json")
+      .header("x-goog-api-key", key.trim)
+      .body(requestJson)
+      .readTimeout(20.seconds)
+      .response(asStringAlways)
+      .send(backend)
+
+    if response.code == StatusCode.Ok then
+      val respJson    = ujson.read(response.body)
       val textContent = respJson("candidates")(0)("content")("parts")(0)("text").str
       GeminiService.parseGeminiResponse(textContent) match
         case Right(res) => res
-        case Left(_)    => fallbackEstimation(prompt)
-    else fallbackEstimation(prompt)
+        case Left(err) =>
+          logger.warn(s"Failed to parse Gemini response JSON, falling back: $err")
+          fallbackEstimation(prompt)
+    else
+      if response.code == StatusCode.NotFound then
+        logger.warn(s"Gemini model $model returned 404 Not Found. Resetting discovered model cache.")
+        if sys.env.get("GEMINI_MODEL").isEmpty then activeModel.set(None)
+      logger.warn(s"Gemini API responded with HTTP status ${response.code}: ${response.body}")
+      fallbackEstimation(prompt)
 
   private def fallbackEstimation(description: String): MealAnalysisResponse =
     val words = description.toLowerCase

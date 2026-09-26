@@ -14,6 +14,9 @@ object MealIngestionView:
 
   final case class EditableItem(id: Int, name: Var[String], calories: Var[Int])
 
+  def canAnalyze(userOpt: Option[com.calcul.model.UserSummary]): Boolean =
+    userOpt.exists(_.hasGeminiKey)
+
   def apply(): HtmlElement =
     val descriptionVar         = Var("")
     val selectedFileNameVar    = Var(Option.empty[String])
@@ -29,33 +32,37 @@ object MealIngestionView:
     val nextItemId           = new AtomicInteger(1)
 
     def runAnalysis(): Unit =
-      val desc    = descriptionVar.now().trim
-      val b64Opt  = selectedImageBase64Var.now()
-      val mimeOpt = selectedImageMimeVar.now()
-
-      if desc.isEmpty && b64Opt.isEmpty then
-        AppState.notify("Please enter a meal description or select an image", "warning")
+      if !canAnalyze(AppState.currentUser.now()) then
+        AppState.notify("Please configure your Gemini API key in User Settings to analyze meals.", "warning")
+        AppState.isSettingsOpen.set(true)
       else
-        isAnalyzingVar.set(true)
-        val req = AnalyzeMealRequest(
-          description = if desc.nonEmpty then Some(desc) else None,
-          imageBase64 = b64Opt,
-          mimeType = mimeOpt
-        )
-        ApiClient.analyzeMeal(req).onComplete {
-          case Success(analysis) =>
-            isAnalyzingVar.set(false)
-            reviewExplanationVar.set(analysis.explanation)
-            val items = analysis.items.zipWithIndex.map { case (item, idx) =>
-              EditableItem(idx + 1, Var(item.name), Var(item.calories))
-            }
-            nextItemId.set(items.length + 1)
-            reviewItemsVar.set(items)
-            reviewModalOpenVar.set(true)
-          case Failure(err) =>
-            isAnalyzingVar.set(false)
-            AppState.notify(s"AI Analysis failed: ${err.getMessage}", "danger")
-        }
+        val desc    = descriptionVar.now().trim
+        val b64Opt  = selectedImageBase64Var.now()
+        val mimeOpt = selectedImageMimeVar.now()
+
+        if desc.isEmpty && b64Opt.isEmpty then
+          AppState.notify("Please enter a meal description or select an image", "warning")
+        else
+          isAnalyzingVar.set(true)
+          val req = AnalyzeMealRequest(
+            description = if desc.nonEmpty then Some(desc) else None,
+            imageBase64 = b64Opt,
+            mimeType = mimeOpt
+          )
+          ApiClient.analyzeMeal(req).onComplete {
+            case Success(analysis) =>
+              isAnalyzingVar.set(false)
+              reviewExplanationVar.set(analysis.explanation)
+              val items = analysis.items.zipWithIndex.map { case (item, idx) =>
+                EditableItem(idx + 1, Var(item.name), Var(item.calories))
+              }
+              nextItemId.set(items.length + 1)
+              reviewItemsVar.set(items)
+              reviewModalOpenVar.set(true)
+            case Failure(err) =>
+              isAnalyzingVar.set(false)
+              AppState.notify(s"AI Analysis failed: ${err.getMessage}", "danger")
+          }
 
     def saveMeal(): Unit =
       val items = reviewItemsVar.now().map { it =>
@@ -104,7 +111,7 @@ object MealIngestionView:
           ),
           span(
             styleAttr := "font-size: 0.8rem; color: var(--sl-color-neutral-500);",
-            "Powered by Gemini Flash"
+            "Powered by AI"
           )
         ),
 
@@ -116,7 +123,7 @@ object MealIngestionView:
           textArea(
             cls := "meal-description-input",
             placeholder := "What did you eat? E.g. 'Grilled salmon with quinoa and asparagus, glass of sparkling water'",
-            styleAttr := "width: 100%; min-height: 80px; padding: 0.75rem; border: 1px solid var(--sl-color-neutral-300); border-radius: var(--sl-border-radius-medium); font-family: inherit; font-size: 0.95rem; resize: vertical; background: var(--sl-input-background-color); color: var(--sl-color-neutral-900);",
+            styleAttr := "box-sizing: border-box; width: 100%; max-width: 100%; min-height: 80px; padding: 0.75rem; border: 1px solid var(--sl-color-neutral-300); border-radius: var(--sl-border-radius-medium); font-family: inherit; font-size: 0.95rem; resize: vertical; background: var(--sl-input-background-color); color: var(--sl-color-neutral-900);",
             controlled(
               value <-- descriptionVar.signal,
               onInput.mapToValue --> descriptionVar.writer

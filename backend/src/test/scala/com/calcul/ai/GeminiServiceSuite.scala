@@ -54,3 +54,18 @@ class GeminiServiceSuite extends FunSuite:
     val result  = GeminiService.parseGeminiResponse(invalid)
     assert(result.isLeft)
   }
+
+  test("validateKey returns Left for empty or whitespace key") {
+    val service = new GeminiService()
+    val res1    = service.validateKey("")
+    val res2    = service.validateKey("   ")
+    assert(res1.isLeft, "Empty key should return Left")
+    assert(res2.isLeft, "Whitespace key should return Left")
+  }
+
+  test("analyzeMeal works with user-provided key") {
+    val service = new GeminiService()
+    val res     = service.analyzeMeal(Some("2 eggs and toast"), None, None, Some("invalid-test-key"))
+    assert(res.totalCalories > 0, "Calories should be positive")
+    assert(res.items.nonEmpty, "Items should not be empty")
+  }

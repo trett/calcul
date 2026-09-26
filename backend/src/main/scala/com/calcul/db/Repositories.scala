@@ -4,7 +4,7 @@ import java.sql.{Connection, Date as SqlDate, ResultSet, Timestamp}
 import java.time.LocalDate
 import java.util.UUID
 import javax.sql.DataSource
-import scala.util.Using
+import scala.util.{Try, Using}
 import com.calcul.model.*
 
 class UserRepository(transactor: DbTransactor):
@@ -15,8 +15,8 @@ class UserRepository(transactor: DbTransactor):
   def upsert(user: User): Unit =
     transactor.withConnection { conn =>
       val sql =
-        """INSERT INTO users (id, google_id, email, name, picture_url, created_at)
-          |VALUES (?, ?, ?, ?, ?, ?)
+        """INSERT INTO users (id, google_id, email, name, picture_url, encrypted_gemini_api_key, created_at)
+          |VALUES (?, ?, ?, ?, ?, ?, ?)
           |ON CONFLICT (google_id)
           |DO UPDATE SET email = EXCLUDED.email, name = EXCLUDED.name, picture_url = EXCLUDED.picture_url
         """.stripMargin
@@ -26,14 +26,16 @@ class UserRepository(transactor: DbTransactor):
         ps.setString(3, user.email)
         ps.setString(4, user.name)
         ps.setString(5, user.pictureUrl.orNull)
-        ps.setTimestamp(6, Timestamp.from(user.createdAt))
+        ps.setString(6, user.encryptedGeminiApiKey.orNull)
+        ps.setTimestamp(7, Timestamp.from(user.createdAt))
         ps.executeUpdate()
       }
     }
 
   def findById(id: UUID): Option[User] =
     transactor.withConnection { conn =>
-      val sql = "SELECT id, google_id, email, name, picture_url, created_at FROM users WHERE id = ?"
+      val sql =
+        "SELECT id, google_id, email, name, picture_url, encrypted_gemini_api_key, created_at FROM users WHERE id = ?"
       Using.resource(conn.prepareStatement(sql)) { ps =>
         ps.setObject(1, id)
         Using.resource(ps.executeQuery()) { rs =>
@@ -44,7 +46,8 @@ class UserRepository(transactor: DbTransactor):
 
   def findByGoogleId(googleId: String): Option[User] =
     transactor.withConnection { conn =>
-      val sql = "SELECT id, google_id, email, name, picture_url, created_at FROM users WHERE google_id = ?"
+      val sql =
+        "SELECT id, google_id, email, name, picture_url, encrypted_gemini_api_key, created_at FROM users WHERE google_id = ?"
       Using.resource(conn.prepareStatement(sql)) { ps =>
         ps.setString(1, googleId)
         Using.resource(ps.executeQuery()) { rs =>
@@ -53,14 +56,52 @@ class UserRepository(transactor: DbTransactor):
       }
     }
 
+  def updateGeminiKey(userId: UUID, encryptedKey: String): Unit =
+    transactor.withConnection { conn =>
+      val sql = "UPDATE users SET encrypted_gemini_api_key = ? WHERE id = ?"
+      Using.resource(conn.prepareStatement(sql)) { ps =>
+        ps.setString(1, encryptedKey)
+        ps.setObject(2, userId)
+        ps.executeUpdate()
+      }
+    }
+
+  def clearGeminiKey(userId: UUID): Unit =
+    transactor.withConnection { conn =>
+      val sql = "UPDATE users SET encrypted_gemini_api_key = NULL WHERE id = ?"
+      Using.resource(conn.prepareStatement(sql)) { ps =>
+        ps.setObject(1, userId)
+        ps.executeUpdate()
+      }
+    }
+
+  def getEncryptedGeminiKey(userId: UUID): Option[String] =
+    transactor.withConnection { conn =>
+      val sql = "SELECT encrypted_gemini_api_key FROM users WHERE id = ?"
+      Using.resource(conn.prepareStatement(sql)) { ps =>
+        ps.setObject(1, userId)
+        Using.resource(ps.executeQuery()) { rs =>
+          if rs.next() then Option(rs.getString("encrypted_gemini_api_key")) else None
+        }
+      }
+    }
+
   private def mapUser(rs: ResultSet): User =
+    val idObj = rs.getObject("id")
+    val id = idObj match
+      case u: UUID   => u
+      case s: String => UUID.fromString(s)
+      case other     => UUID.fromString(other.toString)
+    val encKey    = Try(rs.getString("encrypted_gemini_api_key")).toOption.flatMap(Option(_))
+    val createdAt = Option(rs.getTimestamp("created_at")).map(_.toInstant).getOrElse(java.time.Instant.now())
     User(
-      id = rs.getObject("id", classOf[UUID]),
+      id = id,
       googleId = rs.getString("google_id"),
       email = rs.getString("email"),
       name = rs.getString("name"),
       pictureUrl = Option(rs.getString("picture_url")),
-      createdAt = rs.getTimestamp("created_at").toInstant
+      createdAt = createdAt,
+      encryptedGeminiApiKey = encKey
     )
 
 class DailyTargetRepository(transactor: DbTransactor):

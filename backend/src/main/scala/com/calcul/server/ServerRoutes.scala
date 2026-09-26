@@ -5,27 +5,29 @@ import java.sql.Connection
 import java.time.LocalDate
 import java.util.UUID
 import javax.sql.DataSource
+import org.slf4j.LoggerFactory
 import scala.util.{Try, Using}
+import sttp.model.StatusCode
 import sttp.shared.Identity
 import sttp.tapir.server.ServerEndpoint
 import sttp.tapir.server.netty.sync.NettySyncServer
 import sttp.tapir.stringToPath
 import com.calcul.ai.GeminiService
 import com.calcul.api.Endpoints
-import com.calcul.auth.{AuthConfig, AuthService}
+import com.calcul.auth.{AuthConfig, AuthService, CryptoUtils}
 import com.calcul.db.*
-import com.calcul.model.UserSummary
+import com.calcul.model.{GeminiKeyStatus, User, UserSummary}
 
 class ServerRoutes(
     transactor: DbTransactor,
-    gemini: GeminiService = new GeminiService(None),
+    gemini: GeminiService = new GeminiService(),
     authConfig: AuthConfig = AuthConfig.fromEnv()
 ):
 
-  def this(ds: DataSource) = this(DbTransactor.fromDataSource(ds), new GeminiService(None), AuthConfig.fromEnv())
+  def this(ds: DataSource) = this(DbTransactor.fromDataSource(ds), new GeminiService(), AuthConfig.fromEnv())
   def this(ds: DataSource, gemini: GeminiService, authConfig: AuthConfig) =
     this(DbTransactor.fromDataSource(ds), gemini, authConfig)
-  def this(conn: Connection) = this(DbTransactor.fromConnection(conn), new GeminiService(None), AuthConfig.fromEnv())
+  def this(conn: Connection) = this(DbTransactor.fromConnection(conn), new GeminiService(), AuthConfig.fromEnv())
   def this(conn: Connection, gemini: GeminiService, authConfig: AuthConfig) =
     this(DbTransactor.fromConnection(conn), gemini, authConfig)
 
@@ -38,45 +40,63 @@ class ServerRoutes(
   val weightService: WeightService      = new WeightService(transactor)
   val authService: AuthService          = new AuthService(userRepo, authConfig)
 
-  val defaultUserId: UUID = UUID.fromString("00000000-0000-0000-0000-000000000001")
+  private val logger = LoggerFactory.getLogger(getClass)
+
+  private def authenticate(sessionCookieOpt: Option[String]): Either[(StatusCode, String), User] =
+    sessionCookieOpt.flatMap(authService.verifySessionToken).flatMap(userRepo.findById) match
+      case Some(user) => Right(user)
+      case None       => Left((StatusCode.Unauthorized, "Unauthorized"))
 
   val loginRoute: ServerEndpoint[Any, Identity] =
     Endpoints.loginEndpoint.serverLogicSuccess[Identity](_ => authService.loginUrl("auth_state"))
 
-  val callbackRoute: ServerEndpoint[Any, Identity] =
-    Endpoints.callbackEndpoint.serverLogicSuccess[Identity] { code =>
+  private def handleCallback(code: String): (StatusCode, Option[String], Option[String]) =
+    Try {
       val googleUserOpt = authService.exchangeGoogleCode(code)
-      val userSummary = googleUserOpt match
+      val userSummaryOpt = googleUserOpt match
         case Some(gu) =>
-          authService.handleGoogleUser(gu.googleId, gu.email, gu.name, gu.pictureUrl)
+          Some(authService.handleGoogleUser(gu.googleId, gu.email, gu.name, gu.pictureUrl))
         case None =>
-          authService.handleGoogleUser("google-demo-user", "user@example.com", "Demo User", None)
+          if authConfig.clientId.startsWith("mock-") || authConfig.clientSecret.startsWith("mock-") then
+            Some(authService.handleGoogleUser("google-demo-user", "user@example.com", "Demo User", None))
+          else None
 
-      val sessionToken = authService.createSessionToken(userSummary.id)
-      val cookieHeader = s"session=$sessionToken; Path=/; HttpOnly; SameSite=Lax; Max-Age=2592000"
-      val redirectHtml =
-        """<!DOCTYPE html>
-          |<html>
-          |<head>
-          |  <meta http-equiv="refresh" content="0;url=/">
-          |  <script>window.location.href="/";</script>
-          |</head>
-          |<body>
-          |  <p>Logging in, please wait... <a href="/">Click here if not redirected</a>.</p>
-          |</body>
-          |</html>""".stripMargin
-      (Some(cookieHeader), redirectHtml)
-    }
-
-  val meRoute: ServerEndpoint[Any, Identity] =
-    Endpoints.meEndpoint.serverLogicSuccess[Identity] { sessionCookieOpt =>
-      val userOpt = sessionCookieOpt.flatMap(authService.verifySessionToken).flatMap(userRepo.findById)
-      userOpt match
-        case Some(u) => UserSummary(u.id, u.email, u.name, u.pictureUrl)
+      userSummaryOpt match
+        case Some(userSummary) =>
+          val sessionToken = authService.createSessionToken(userSummary.id)
+          val cookieHeader = s"session=$sessionToken; Path=/; HttpOnly; SameSite=Lax; Max-Age=2592000"
+          (StatusCode.Found, Some("/"), Some(cookieHeader))
         case None =>
-          userRepo.findById(defaultUserId) match
-            case Some(u) => UserSummary(u.id, u.email, u.name, u.pictureUrl)
-            case None    => UserSummary(defaultUserId, "demo@example.com", "Demo User", None)
+          logger.error("Authentication failed: unable to obtain user profile from Google OAuth code")
+          (StatusCode.Found, Some("/?auth_error=google_failed"), None)
+    } match
+      case scala.util.Success(res) => res
+      case scala.util.Failure(ex) =>
+        logger.error(s"Unexpected error during Google OAuth callback processing", ex)
+        (StatusCode.Found, Some("/?auth_error=server_error"), None)
+
+  val callbackRoute =
+    Endpoints.callbackEndpoint.serverLogicSuccess[Identity](handleCallback)
+
+  val legacyCallbackRoute =
+    sttp.tapir.endpoint.get
+      .in("auth" / "callback")
+      .in(sttp.tapir.query[String]("code"))
+      .out(sttp.tapir.statusCode)
+      .out(sttp.tapir.header[Option[String]]("Location"))
+      .out(sttp.tapir.header[Option[String]]("Set-Cookie"))
+      .summary("Legacy /auth/callback alias for Google OAuth2")
+      .serverLogicSuccess[Identity](handleCallback)
+
+  val meRoute =
+    Endpoints.meEndpoint.serverLogic[Identity] { sessionCookieOpt =>
+      authenticate(sessionCookieOpt).map { u =>
+        val hasKey = u.encryptedGeminiApiKey.isDefined
+        val masked = u.encryptedGeminiApiKey.flatMap { enc =>
+          CryptoUtils.decrypt(enc, authConfig.sessionSecret).toOption.map(CryptoUtils.maskKey)
+        }
+        UserSummary(u.id, u.email, u.name, u.pictureUrl, hasKey, masked)
+      }
     }
 
   val logoutRoute: ServerEndpoint[Any, Identity] =
@@ -85,53 +105,112 @@ class ServerRoutes(
       (Some(clearCookie), "Logged out successfully")
     }
 
-  val analyzeMealRoute: ServerEndpoint[Any, Identity] =
-    Endpoints.analyzeMealEndpoint.serverLogicSuccess[Identity] { req =>
-      mealService.analyze(req)
+  val getGeminiKeyStatusRoute =
+    Endpoints.getGeminiKeyStatusEndpoint.serverLogic[Identity] { sessionCookieOpt =>
+      authenticate(sessionCookieOpt).map { user =>
+        val encKeyOpt = userRepo.getEncryptedGeminiKey(user.id)
+        val maskedKeyOpt = encKeyOpt.flatMap { enc =>
+          CryptoUtils.decrypt(enc, authConfig.sessionSecret).toOption.map(CryptoUtils.maskKey)
+        }
+        GeminiKeyStatus(hasKey = encKeyOpt.isDefined, maskedKey = maskedKeyOpt)
+      }
     }
 
-  val createMealRoute: ServerEndpoint[Any, Identity] =
-    Endpoints.createMealEndpoint.serverLogicSuccess[Identity] { req =>
-      mealService.createMeal(defaultUserId, req)
+  val saveGeminiKeyRoute =
+    Endpoints.saveGeminiKeyEndpoint.serverLogic[Identity] { case (sessionCookieOpt, req) =>
+      authenticate(sessionCookieOpt).flatMap { user =>
+        val cleanedKey = req.apiKey.trim.stripPrefix("\"").stripSuffix("\"").stripPrefix("'").stripSuffix("'").trim
+        gemini.validateKey(cleanedKey) match
+          case Left(err) =>
+            logger.warn(s"Gemini API key validation rejected for user ${user.id}: $err")
+            Left((StatusCode.BadRequest, s"Invalid Gemini API key: $err"))
+          case Right(()) =>
+            val encrypted = CryptoUtils.encrypt(cleanedKey, authConfig.sessionSecret)
+            userRepo.updateGeminiKey(user.id, encrypted)
+            logger.info(s"Gemini API key successfully encrypted and saved for user ${user.id}")
+            Right(GeminiKeyStatus(hasKey = true, maskedKey = Some(CryptoUtils.maskKey(cleanedKey))))
+      }
     }
 
-  val listMealsRoute: ServerEndpoint[Any, Identity] =
-    Endpoints.listMealsEndpoint.serverLogicSuccess[Identity] { dateStr =>
-      val date = Try(LocalDate.parse(dateStr)).getOrElse(LocalDate.now())
-      mealService.listMeals(defaultUserId, date)
+  val deleteGeminiKeyRoute =
+    Endpoints.deleteGeminiKeyEndpoint.serverLogic[Identity] { sessionCookieOpt =>
+      authenticate(sessionCookieOpt).map { user =>
+        userRepo.clearGeminiKey(user.id)
+        "Gemini API key deleted successfully"
+      }
     }
 
-  val deleteMealRoute: ServerEndpoint[Any, Identity] =
-    Endpoints.deleteMealEndpoint.serverLogicSuccess[Identity] { idStr =>
-      Try(UUID.fromString(idStr)).toOption match
-        case Some(mealId) =>
-          if mealService.deleteMeal(defaultUserId, mealId) then s"Meal $idStr deleted"
-          else s"Meal $idStr not found"
-        case None =>
-          s"Invalid meal ID $idStr"
+  val analyzeMealRoute =
+    Endpoints.analyzeMealEndpoint.serverLogic[Identity] { case (sessionCookieOpt, req) =>
+      authenticate(sessionCookieOpt).flatMap { user =>
+        userRepo.getEncryptedGeminiKey(user.id) match
+          case None =>
+            Left((StatusCode.BadRequest, "Gemini API key not configured. Please configure your key in User Settings."))
+          case Some(encKey) =>
+            CryptoUtils.decrypt(encKey, authConfig.sessionSecret) match
+              case Left(err) =>
+                Left((StatusCode.InternalServerError, s"Failed to decrypt Gemini API key: $err"))
+              case Right(key) =>
+                Right(mealService.analyze(req, userApiKey = Some(key)))
+      }
     }
 
-  val getDailyCaloriesRoute: ServerEndpoint[Any, Identity] =
-    Endpoints.getDailyCaloriesEndpoint.serverLogicSuccess[Identity] { dateStr =>
-      val date = Try(LocalDate.parse(dateStr)).getOrElse(LocalDate.now())
-      calorieService.getDailySummary(defaultUserId, date)
+  val createMealRoute =
+    Endpoints.createMealEndpoint.serverLogic[Identity] { case (sessionCookieOpt, req) =>
+      authenticate(sessionCookieOpt).map { user =>
+        mealService.createMeal(user.id, req)
+      }
     }
 
-  val setDailyTargetRoute: ServerEndpoint[Any, Identity] =
-    Endpoints.setDailyTargetEndpoint.serverLogicSuccess[Identity] { req =>
-      calorieService.setTarget(defaultUserId, req)
+  val listMealsRoute =
+    Endpoints.listMealsEndpoint.serverLogic[Identity] { case (sessionCookieOpt, dateStr) =>
+      authenticate(sessionCookieOpt).map { user =>
+        val date = Try(LocalDate.parse(dateStr)).getOrElse(LocalDate.now())
+        mealService.listMeals(user.id, date)
+      }
     }
 
-  val recordWeightRoute: ServerEndpoint[Any, Identity] =
-    Endpoints.recordWeightEndpoint.serverLogicSuccess[Identity] { req =>
-      weightService.recordWeight(defaultUserId, req)
+  val deleteMealRoute =
+    Endpoints.deleteMealEndpoint.serverLogic[Identity] { case (sessionCookieOpt, idStr) =>
+      authenticate(sessionCookieOpt).flatMap { user =>
+        Try(UUID.fromString(idStr)).toOption match
+          case Some(mealId) =>
+            if mealService.deleteMeal(user.id, mealId) then Right(s"Meal $idStr deleted")
+            else Left((StatusCode.NotFound, s"Meal $idStr not found"))
+          case None =>
+            Left((StatusCode.BadRequest, s"Invalid meal ID $idStr"))
+      }
     }
 
-  val getWeightsRoute: ServerEndpoint[Any, Identity] =
-    Endpoints.getWeightsEndpoint.serverLogicSuccess[Identity] { case (fromStr, toStr) =>
-      val fromDate = Try(LocalDate.parse(fromStr)).getOrElse(LocalDate.now().minusDays(30))
-      val toDate   = Try(LocalDate.parse(toStr)).getOrElse(LocalDate.now())
-      weightService.getWeights(defaultUserId, fromDate, toDate)
+  val getDailyCaloriesRoute =
+    Endpoints.getDailyCaloriesEndpoint.serverLogic[Identity] { case (sessionCookieOpt, dateStr) =>
+      authenticate(sessionCookieOpt).map { user =>
+        val date = Try(LocalDate.parse(dateStr)).getOrElse(LocalDate.now())
+        calorieService.getDailySummary(user.id, date)
+      }
+    }
+
+  val setDailyTargetRoute =
+    Endpoints.setDailyTargetEndpoint.serverLogic[Identity] { case (sessionCookieOpt, req) =>
+      authenticate(sessionCookieOpt).map { user =>
+        calorieService.setTarget(user.id, req)
+      }
+    }
+
+  val recordWeightRoute =
+    Endpoints.recordWeightEndpoint.serverLogic[Identity] { case (sessionCookieOpt, req) =>
+      authenticate(sessionCookieOpt).map { user =>
+        weightService.recordWeight(user.id, req)
+      }
+    }
+
+  val getWeightsRoute =
+    Endpoints.getWeightsEndpoint.serverLogic[Identity] { case (sessionCookieOpt, fromStr, toStr) =>
+      authenticate(sessionCookieOpt).map { user =>
+        val fromDate = Try(LocalDate.parse(fromStr)).getOrElse(LocalDate.now().minusDays(30))
+        val toDate   = Try(LocalDate.parse(toStr)).getOrElse(LocalDate.now())
+        weightService.getWeights(user.id, fromDate, toDate)
+      }
     }
 
   val indexRoute: ServerEndpoint[Any, Identity] =
@@ -146,7 +225,8 @@ class ServerRoutes(
               new String(stream.readAllBytes(), StandardCharsets.UTF_8)
             }
           case None =>
-            "<!DOCTYPE html><html><body><div id='app'>CalTrack AI</div></body></html>"
+            logger.warn("webapp/index.html not found on classpath")
+            ""
       }
 
   val assetsRoute: ServerEndpoint[Any, Identity] =
@@ -186,6 +266,7 @@ class ServerRoutes(
     assetsRoute,
     loginRoute,
     callbackRoute,
+    legacyCallbackRoute,
     meRoute,
     logoutRoute,
     analyzeMealRoute,
@@ -196,6 +277,9 @@ class ServerRoutes(
     setDailyTargetRoute,
     recordWeightRoute,
     getWeightsRoute,
+    getGeminiKeyStatusRoute,
+    saveGeminiKeyRoute,
+    deleteGeminiKeyRoute,
     indexRoute
   )
 

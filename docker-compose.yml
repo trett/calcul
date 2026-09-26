@@ -30,10 +30,9 @@ services:
       JDBC_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-calcul}
       DB_USER: ${POSTGRES_USER:-calcul}
       DB_PASSWORD: ${POSTGRES_PASSWORD:-calcul_secret}
-      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
-      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI:-http://localhost:8080/auth/callback}
+      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI:-http://localhost:8080/api/auth/callback}
       SESSION_SECRET: ${SESSION_SECRET:-change-this-session-secret-in-production}
     depends_on:
       postgres:
