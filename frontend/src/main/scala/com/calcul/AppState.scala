@@ -46,6 +46,18 @@ object AppState:
     notification.set(Some((variant, message)))
     dom.window.setTimeout(() => notification.set(None), 4000)
 
+  def checkUrlAuthErrors(): Unit =
+    try
+      val search = Option(dom.window.location.search).getOrElse("")
+      if search.contains("auth_error") then
+        notify("Sign-in failed. Please verify your Google OAuth credentials or try again.", "danger")
+        Option(dom.window.history).foreach { hist =>
+          Option(dom.window.location.pathname).foreach { path =>
+            hist.replaceState("", "", path)
+          }
+        }
+    catch case _: Throwable => ()
+
   def setDate(d: LocalDate): Unit =
     selectedDate.set(d)
     loadDailyData()

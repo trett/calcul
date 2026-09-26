@@ -50,7 +50,7 @@ class ServerRoutes(
   val loginRoute: ServerEndpoint[Any, Identity] =
     Endpoints.loginEndpoint.serverLogicSuccess[Identity](_ => authService.loginUrl("auth_state"))
 
-  private def handleCallback(code: String): (StatusCode, Option[String], Option[String], String) =
+  private def handleCallback(code: String): (StatusCode, Option[String], Option[String]) =
     Try {
       val googleUserOpt = authService.exchangeGoogleCode(code)
       val userSummaryOpt = googleUserOpt match
@@ -65,47 +65,15 @@ class ServerRoutes(
         case Some(userSummary) =>
           val sessionToken = authService.createSessionToken(userSummary.id)
           val cookieHeader = s"session=$sessionToken; Path=/; HttpOnly; SameSite=Lax; Max-Age=2592000"
-          val redirectHtml =
-            """<!DOCTYPE html>
-              |<html>
-              |<head>
-              |  <title>Redirecting...</title>
-              |  <meta http-equiv="refresh" content="0;url=/">
-              |  <script>window.location.href="/";</script>
-              |</head>
-              |<body>
-              |  <p>Logging in, please wait... <a href="/">Click here if not redirected</a>.</p>
-              |</body>
-              |</html>""".stripMargin
-          (StatusCode.Found, Some("/"), Some(cookieHeader), redirectHtml)
+          (StatusCode.Found, Some("/"), Some(cookieHeader))
         case None =>
           logger.error("Authentication failed: unable to obtain user profile from Google OAuth code")
-          val errorHtml =
-            """<!DOCTYPE html>
-              |<html>
-              |<head><title>Sign-in Failed</title></head>
-              |<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; text-align: center; padding: 60px 20px;">
-              |  <h2 style="color: #dc2626;">Sign-in Failed</h2>
-              |  <p style="color: #4b5563; max-width: 500px; margin: 0 auto 24px auto;">Could not sign in with Google. Please verify that your GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, and GOOGLE_REDIRECT_URI match your Google Cloud Console OAuth configuration.</p>
-              |  <a href="/" style="display: inline-block; padding: 10px 20px; background-color: #2563eb; color: white; text-decoration: none; border-radius: 6px; font-weight: 500;">Back to Home</a>
-              |</body>
-              |</html>""".stripMargin
-          (StatusCode.BadRequest, None, None, errorHtml)
+          (StatusCode.Found, Some("/?auth_error=google_failed"), None)
     } match
       case scala.util.Success(res) => res
       case scala.util.Failure(ex) =>
         logger.error(s"Unexpected error during Google OAuth callback processing", ex)
-        val errorHtml =
-          s"""<!DOCTYPE html>
-             |<html>
-             |<head><title>Authentication Error</title></head>
-             |<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; text-align: center; padding: 60px 20px;">
-             |  <h2 style="color: #dc2626;">Authentication Error</h2>
-             |  <p style="color: #4b5563; max-width: 500px; margin: 0 auto 24px auto;">An error occurred while completing authentication. Check server logs for details.</p>
-             |  <a href="/" style="display: inline-block; padding: 10px 20px; background-color: #2563eb; color: white; text-decoration: none; border-radius: 6px; font-weight: 500;">Back to Home</a>
-             |</body>
-             |</html>""".stripMargin
-        (StatusCode.InternalServerError, None, None, errorHtml)
+        (StatusCode.Found, Some("/?auth_error=server_error"), None)
 
   val callbackRoute =
     Endpoints.callbackEndpoint.serverLogicSuccess[Identity](handleCallback)
@@ -117,7 +85,6 @@ class ServerRoutes(
       .out(sttp.tapir.statusCode)
       .out(sttp.tapir.header[Option[String]]("Location"))
       .out(sttp.tapir.header[Option[String]]("Set-Cookie"))
-      .out(sttp.tapir.htmlBodyUtf8)
       .summary("Legacy /auth/callback alias for Google OAuth2")
       .serverLogicSuccess[Identity](handleCallback)
 
@@ -258,7 +225,8 @@ class ServerRoutes(
               new String(stream.readAllBytes(), StandardCharsets.UTF_8)
             }
           case None =>
-            "<!DOCTYPE html><html><body><div id='app'>CalTrack AI</div></body></html>"
+            logger.warn("webapp/index.html not found on classpath")
+            ""
       }
 
   val assetsRoute: ServerEndpoint[Any, Identity] =

@@ -8,6 +8,7 @@ object Main:
   def main(args: Array[String]): Unit =
     val init = () =>
       AppState.initTheme()
+      AppState.checkUrlAuthErrors()
       AppState.loadCurrentUser()
 
       Option(dom.document.getElementById("app")).foreach { root =>
