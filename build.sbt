@@ -5,7 +5,7 @@ import com.typesafe.sbt.packager.docker.DockerApiVersion
 val scala3Version = "3.9.0"
 
 ThisBuild / scalaVersion := scala3Version
-ThisBuild / organization := "com.calcul"
+ThisBuild / organization := "ru.trett.calcul"
 ThisBuild / version := "0.1.0-SNAPSHOT"
 
 ThisBuild / scalacOptions ++= Seq(
@@ -62,7 +62,7 @@ lazy val backend = (project in file("backend"))
   .dependsOn(shared.jvm)
   .settings(
     name := "calcul-backend",
-    Compile / mainClass := Some("com.calcul.Main"),
+    Compile / mainClass := Some("ru.trett.calcul.Main"),
     Compile / resourceGenerators += generateFrontendAssets.taskValue,
     Test / resourceGenerators += generateFrontendAssets.taskValue,
     Test / parallelExecution := false,
