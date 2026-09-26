@@ -123,7 +123,7 @@ object MealIngestionView:
           textArea(
             cls := "meal-description-input",
             placeholder := "What did you eat? E.g. 'Grilled salmon with quinoa and asparagus, glass of sparkling water'",
-            styleAttr := "width: 100%; min-height: 80px; padding: 0.75rem; border: 1px solid var(--sl-color-neutral-300); border-radius: var(--sl-border-radius-medium); font-family: inherit; font-size: 0.95rem; resize: vertical; background: var(--sl-input-background-color); color: var(--sl-color-neutral-900);",
+            styleAttr := "box-sizing: border-box; width: 100%; max-width: 100%; min-height: 80px; padding: 0.75rem; border: 1px solid var(--sl-color-neutral-300); border-radius: var(--sl-border-radius-medium); font-family: inherit; font-size: 0.95rem; resize: vertical; background: var(--sl-input-background-color); color: var(--sl-color-neutral-900);",
             controlled(
               value <-- descriptionVar.signal,
               onInput.mapToValue --> descriptionVar.writer
