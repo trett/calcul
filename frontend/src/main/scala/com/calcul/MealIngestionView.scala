@@ -111,7 +111,7 @@ object MealIngestionView:
           ),
           span(
             styleAttr := "font-size: 0.8rem; color: var(--sl-color-neutral-500);",
-            "Powered by Gemini Flash"
+            "Powered by AI"
           )
         ),
 

@@ -87,7 +87,7 @@ object SettingsView:
           h4(styleAttr := "margin: 0 0 0.5rem 0; font-size: 1rem;", "Update API Key"),
           p(
             styleAttr := "font-size: 0.85rem; color: var(--sl-color-neutral-600); margin: 0 0 0.75rem 0; line-height: 1.4;",
-            "Provide your Google Gemini Flash API key. The key is validated with Gemini before saving and stored encrypted at rest with AES-256-GCM."
+            "Provide your Gemini API key. The key is validated before saving and securely encrypted at rest."
           ),
           slInput(
             slType           := "password",

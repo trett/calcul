@@ -85,7 +85,7 @@ object AppShell:
         styleAttr := "text-align: center; padding: 1.25rem; font-size: 0.85rem; color: var(--sl-color-neutral-500); border-top: 1px solid var(--sl-color-neutral-200); background-color: var(--sl-panel-background-color);",
         p(
           margin := "0",
-          "CalTrack AI — Direct-Style Scala 3 with SoftwareMill Ox, Tapir & Laminar"
+          "CalTrack AI — Intelligent Nutrition & Calorie Tracker"
         )
       ),
 

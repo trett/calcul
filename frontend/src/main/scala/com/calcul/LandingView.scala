@@ -33,7 +33,7 @@ object LandingView:
         ),
         p(
           styleAttr := "font-size: 1.15rem; color: var(--sl-color-neutral-600); max-width: 650px; margin: 0 auto 2rem auto; line-height: 1.6;",
-          "Log your meals in seconds with photo and description analysis powered by Google Gemini Flash. Keep your data private by using your own Gemini API key."
+          "Log your meals in seconds with photo and description analysis powered by AI. Track your calorie budget, monitor progress, and reach your goals."
         ),
         div(
           styleAttr := "display: flex; justify-content: center; gap: 1rem; align-items: center;",
@@ -57,7 +57,7 @@ object LandingView:
 
       // Feature Highlights Grid
       div(
-        styleAttr := "display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.5rem; text-align: left; margin-bottom: 3rem;",
+        styleAttr := "display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; text-align: left; margin-bottom: 3rem;",
         slCard(
           div(
             slSlot    := "header",
@@ -67,19 +67,7 @@ object LandingView:
           ),
           p(
             styleAttr := "color: var(--sl-color-neutral-600); font-size: 0.95rem; line-height: 1.5; margin: 0;",
-            "Snap a picture or type what you ate. Gemini Flash extracts items, estimates calories, and provides nutritional explanations instantly."
-          )
-        ),
-        slCard(
-          div(
-            slSlot    := "header",
-            styleAttr := "display: flex; align-items: center; gap: 0.5rem;",
-            slIcon(slName  := "key", styleAttr := "font-size: 1.4rem; color: var(--sl-color-primary-600);"),
-            span(styleAttr := "font-weight: 600; font-size: 1.1rem;", "Bring Your Own Key")
-          ),
-          p(
-            styleAttr := "color: var(--sl-color-neutral-600); font-size: 0.95rem; line-height: 1.5; margin: 0;",
-            "Use your personal Gemini API key. Your key is validated, encrypted with AES-256-GCM at rest, and never exposed to other users."
+            "Snap a picture or type what you ate. AI analysis extracts items, estimates calories, and provides nutritional explanations instantly."
           )
         ),
         slCard(
