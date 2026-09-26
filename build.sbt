@@ -21,6 +21,7 @@ ThisBuild / semanticdbVersion := scalafixSemanticdb.revision
 
 val oxVersion = "1.0.7"
 val tapirVersion = "1.13.31"
+val sttpClientVersion = "4.0.26"
 val sttpAiVersion = "0.11.0"
 val upickleVersion = "4.4.3"
 val laminarVersion = "17.2.1"
@@ -131,6 +132,7 @@ lazy val backend = (project in file("backend"))
     }.value,
     libraryDependencies ++= Seq(
       "com.softwaremill.ox" %% "core" % oxVersion,
+      "com.softwaremill.sttp.client4" %% "core" % sttpClientVersion,
       "com.softwaremill.sttp.tapir" %% "tapir-netty-server-sync" % tapirVersion,
       "com.softwaremill.sttp.ai" %% "gemini" % sttpAiVersion,
       "org.postgresql" % "postgresql" % postgresqlVersion,

@@ -2,10 +2,9 @@ package com.calcul.server
 
 import munit.FunSuite
 import java.io.File
-import java.net.URI
-import java.net.http.{HttpClient, HttpRequest, HttpResponse}
 import java.nio.file.Files
 import ox.*
+import sttp.client4.quick.*
 import com.calcul.db.TestPostgresContainer
 
 class HealthcheckSuite extends FunSuite:
@@ -19,16 +18,9 @@ class HealthcheckSuite extends FunSuite:
       supervised {
         val binding = server.start()
         try
-          val client = HttpClient.newHttpClient()
-          val request = HttpRequest
-            .newBuilder()
-            .uri(URI.create("http://localhost:8897/api/health"))
-            .GET()
-            .build()
-
-          val response = client.send(request, HttpResponse.BodyHandlers.ofString())
-          assertEquals(response.statusCode(), 200)
-          assert(response.body().contains("ok"))
+          val response = quickRequest.get(uri"http://localhost:8897/api/health").send()
+          assertEquals(response.code.code, 200)
+          assert(response.body.contains("ok"))
         finally binding.stop()
       }
     finally conn.close()

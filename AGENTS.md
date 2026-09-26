@@ -18,3 +18,7 @@ These guidelines are mandatory for all AI agents and contributors working in thi
      sbt test
      ```
 - No PR may be created with Scalafix violations, compiler warnings (enforced by `-Werror`), or failing tests.
+
+## 3. Technology Stack & Architectural Style
+- **Prefer Scala & SoftwareMill Solutions Over Raw Java:** Always prefer native Scala 3 idioms and SoftwareMill ecosystem libraries (particularly SoftwareMill Ox, sttp-client4, and Tapir) over raw Java standard library or legacy Java constructs (e.g., use `sttp-client4` instead of raw `java.net.http.HttpClient`, and use direct-style virtual thread abstractions instead of raw Java concurrency or thread pools).
+- **Direct-Style Concurrency & Resilience:** Leverage Ox concurrency primitives (`supervised`, `fork`, `Flow`, `Channel`) and synchronous direct-style backends (`DefaultSyncBackend`) running on Java 21+ virtual threads.

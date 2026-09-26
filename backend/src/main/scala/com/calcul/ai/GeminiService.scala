@@ -1,25 +1,20 @@
 package com.calcul.ai
 
-import java.net.URI
-import java.net.http.{HttpClient, HttpRequest, HttpResponse}
-import java.nio.charset.StandardCharsets
-import java.time.Duration
 import org.slf4j.LoggerFactory
+import scala.concurrent.duration.*
 import scala.util.Try
+import sttp.client4.*
+import sttp.model.{StatusCode, Uri}
 import com.calcul.model.{AnalyzedItem, MealAnalysisResponse}
 
-class GeminiService:
+class GeminiService(
+    backend: SyncBackend = DefaultSyncBackend(BackendOptions.connectionTimeout(10.seconds))
+):
 
   private val logger = LoggerFactory.getLogger(getClass)
 
-  private val httpClient: HttpClient =
-    HttpClient
-      .newBuilder()
-      .connectTimeout(Duration.ofSeconds(10))
-      .build()
-
-  private val ModelsEndpoint: URI =
-    URI.create("https://generativelanguage.googleapis.com/v1beta/models?pageSize=1")
+  private val ModelsEndpoint: Uri =
+    uri"https://generativelanguage.googleapis.com/v1beta/models?pageSize=1"
 
   private val activeModel: java.util.concurrent.atomic.AtomicReference[Option[String]] =
     new java.util.concurrent.atomic.AtomicReference(sys.env.get("GEMINI_MODEL").filter(_.trim.nonEmpty))
@@ -38,17 +33,15 @@ class GeminiService:
 
   private def fetchAvailableModel(apiKey: String): Option[String] =
     Try {
-      val request = HttpRequest
-        .newBuilder()
-        .uri(URI.create("https://generativelanguage.googleapis.com/v1beta/models?pageSize=50"))
+      val response = basicRequest
+        .get(uri"https://generativelanguage.googleapis.com/v1beta/models?pageSize=50")
         .header("x-goog-api-key", apiKey)
-        .timeout(Duration.ofSeconds(10))
-        .GET()
-        .build()
+        .readTimeout(10.seconds)
+        .response(asStringAlways)
+        .send(backend)
 
-      val response = httpClient.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8))
-      if response.statusCode() == 200 then
-        val json   = ujson.read(response.body())
+      if response.code == StatusCode.Ok then
+        val json   = ujson.read(response.body)
         val models = json.obj.get("models").map(_.arr.toList).getOrElse(Nil)
         val validModels = models
           .filter { m =>
@@ -65,7 +58,7 @@ class GeminiService:
         flashModel.foreach(m => logger.info(s"Discovered available Gemini model for generateContent: $m"))
         flashModel
       else
-        logger.warn(s"ListModels call returned HTTP ${response.statusCode()}: ${response.body()}")
+        logger.warn(s"ListModels call returned HTTP ${response.code}: ${response.body}")
         None
     }.toOption.flatten
 
@@ -77,21 +70,19 @@ class GeminiService:
       Right(())
     else
       Try {
-        val request = HttpRequest
-          .newBuilder()
-          .uri(ModelsEndpoint)
+        val response = basicRequest
+          .get(ModelsEndpoint)
           .header("x-goog-api-key", cleaned)
-          .timeout(Duration.ofSeconds(15))
-          .GET()
-          .build()
+          .readTimeout(15.seconds)
+          .response(asStringAlways)
+          .send(backend)
 
-        val response = httpClient.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8))
-        if response.statusCode() == 200 then
+        if response.code == StatusCode.Ok then
           logger.info("Gemini API key validated successfully via Google Generative Language API")
           Right(())
         else
-          val status = response.statusCode()
-          val body   = response.body()
+          val status = response.code
+          val body   = response.body
           logger.warn(s"Gemini API key validation call returned HTTP $status: $body")
           val detail =
             Try(ujson.read(body)("error")("message").str).getOrElse(s"HTTP $status")
@@ -165,20 +156,19 @@ class GeminiService:
       .render()
 
     val model       = discoverModel(key)
-    val endpointUri = URI.create(s"https://generativelanguage.googleapis.com/v1beta/$model:generateContent")
+    val endpointUri = Uri.unsafeParse(s"https://generativelanguage.googleapis.com/v1beta/$model:generateContent")
 
-    val request = HttpRequest
-      .newBuilder()
-      .uri(endpointUri)
-      .header("Content-Type", "application/json")
+    val response = basicRequest
+      .post(endpointUri)
+      .contentType("application/json")
       .header("x-goog-api-key", key.trim)
-      .timeout(Duration.ofSeconds(20))
-      .POST(HttpRequest.BodyPublishers.ofString(requestJson, StandardCharsets.UTF_8))
-      .build()
+      .body(requestJson)
+      .readTimeout(20.seconds)
+      .response(asStringAlways)
+      .send(backend)
 
-    val response = httpClient.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8))
-    if response.statusCode() == 200 then
-      val respJson    = ujson.read(response.body())
+    if response.code == StatusCode.Ok then
+      val respJson    = ujson.read(response.body)
       val textContent = respJson("candidates")(0)("content")("parts")(0)("text").str
       GeminiService.parseGeminiResponse(textContent) match
         case Right(res) => res
@@ -186,10 +176,10 @@ class GeminiService:
           logger.warn(s"Failed to parse Gemini response JSON, falling back: $err")
           fallbackEstimation(prompt)
     else
-      if response.statusCode() == 404 then
+      if response.code == StatusCode.NotFound then
         logger.warn(s"Gemini model $model returned 404 Not Found. Resetting discovered model cache.")
         if sys.env.get("GEMINI_MODEL").isEmpty then activeModel.set(None)
-      logger.warn(s"Gemini API responded with HTTP status ${response.statusCode()}: ${response.body()}")
+      logger.warn(s"Gemini API responded with HTTP status ${response.code}: ${response.body}")
       fallbackEstimation(prompt)
 
   private def fallbackEstimation(description: String): MealAnalysisResponse =

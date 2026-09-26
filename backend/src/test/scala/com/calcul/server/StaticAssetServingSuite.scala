@@ -1,9 +1,8 @@
 package com.calcul.server
 
 import munit.FunSuite
-import java.net.URI
-import java.net.http.{HttpClient, HttpRequest, HttpResponse}
 import ox.*
+import sttp.client4.quick.*
 import com.calcul.db.TestPostgresContainer
 
 class StaticAssetServingSuite extends FunSuite:
@@ -17,16 +16,9 @@ class StaticAssetServingSuite extends FunSuite:
       supervised {
         val binding = server.start()
         try
-          val client = HttpClient.newHttpClient()
-          val request = HttpRequest
-            .newBuilder()
-            .uri(URI.create("http://localhost:8899/"))
-            .GET()
-            .build()
-
-          val response = client.send(request, HttpResponse.BodyHandlers.ofString())
-          assertEquals(response.statusCode(), 200)
-          assert(response.body().contains("CalTrack"))
+          val response = quickRequest.get(uri"http://localhost:8899/").send()
+          assertEquals(response.code.code, 200)
+          assert(response.body.contains("CalTrack"))
         finally binding.stop()
       }
     finally conn.close()
@@ -41,16 +33,9 @@ class StaticAssetServingSuite extends FunSuite:
       supervised {
         val binding = server.start()
         try
-          val client = HttpClient.newHttpClient()
-          val request = HttpRequest
-            .newBuilder()
-            .uri(URI.create("http://localhost:8898/assets/main.js"))
-            .GET()
-            .build()
-
-          val response = client.send(request, HttpResponse.BodyHandlers.ofString())
-          assertEquals(response.statusCode(), 200)
-          assertEquals(response.headers().firstValue("Content-Type").orElse(""), "application/javascript")
+          val response = quickRequest.get(uri"http://localhost:8898/assets/main.js").send()
+          assertEquals(response.code.code, 200)
+          assertEquals(response.header("Content-Type").getOrElse(""), "application/javascript")
         finally binding.stop()
       }
     finally conn.close()
