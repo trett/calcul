@@ -1,6 +1,6 @@
 [
 {
-  "name":"com.calcul.Main",
+  "name":"ru.trett.calcul.Main",
   "methods":[{"name":"main","parameterTypes":["java.lang.String[]"] }]
 },
 {

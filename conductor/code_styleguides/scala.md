@@ -27,7 +27,7 @@ Based on the [Official Scala Style Guide](https://docs.scala-lang.org/style/) an
   - Use compile-time derivation for JSON codecs (e.g. `circe-derivation` or `upickle`).
 
 ## 3. Naming Conventions & Organization
-- **Packages:** `lowercase`, single-word or reverse-domain (e.g., `com.calcul...`).
+- **Packages:** `lowercase`, single-word or reverse-domain (e.g., `ru.trett.calcul...`).
 - **Classes/Traits/Enums/Objects:** `PascalCase`.
 - **Methods & Values:** `camelCase`.
 - **Constants:** `UpperCamelCase` or `UPPER_SNAKE_CASE` only for truly static literals.

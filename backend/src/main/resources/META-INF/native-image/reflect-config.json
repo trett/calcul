@@ -24,63 +24,63 @@
   "name":"[Lsttp.tapir.SchemaType$SProductField;"
 },
 {
-  "name":"com.calcul.model.AnalyzeMealRequest$",
+  "name":"ru.trett.calcul.model.AnalyzeMealRequest$",
   "fields":[{"name":"derived$ReadWriter$lzy11"}]
 },
 {
-  "name":"com.calcul.model.AnalyzedItem$",
+  "name":"ru.trett.calcul.model.AnalyzedItem$",
   "fields":[{"name":"derived$ReadWriter$lzy10"}]
 },
 {
-  "name":"com.calcul.model.Codecs$",
+  "name":"ru.trett.calcul.model.Codecs$",
   "fields":[{"name":"given_ReadWriter_Instant$lzy1"}, {"name":"given_ReadWriter_LocalDate$lzy1"}]
 },
 {
-  "name":"com.calcul.model.CreateMealItem$",
+  "name":"ru.trett.calcul.model.CreateMealItem$",
   "fields":[{"name":"derived$ReadWriter$lzy8"}]
 },
 {
-  "name":"com.calcul.model.CreateMealRequest$",
+  "name":"ru.trett.calcul.model.CreateMealRequest$",
   "fields":[{"name":"derived$ReadWriter$lzy9"}]
 },
 {
-  "name":"com.calcul.model.DailyCalorieSummary$",
+  "name":"ru.trett.calcul.model.DailyCalorieSummary$",
   "fields":[{"name":"derived$ReadWriter$lzy5"}]
 },
 {
-  "name":"com.calcul.model.DailyTarget$",
+  "name":"ru.trett.calcul.model.DailyTarget$",
   "fields":[{"name":"derived$ReadWriter$lzy3"}]
 },
 {
-  "name":"com.calcul.model.DailyWeight$",
+  "name":"ru.trett.calcul.model.DailyWeight$",
   "fields":[{"name":"derived$ReadWriter$lzy13"}]
 },
 {
-  "name":"com.calcul.model.Meal$",
+  "name":"ru.trett.calcul.model.Meal$",
   "fields":[{"name":"derived$ReadWriter$lzy7"}]
 },
 {
-  "name":"com.calcul.model.MealAnalysisResponse$",
+  "name":"ru.trett.calcul.model.MealAnalysisResponse$",
   "fields":[{"name":"derived$ReadWriter$lzy12"}]
 },
 {
-  "name":"com.calcul.model.MealItem$",
+  "name":"ru.trett.calcul.model.MealItem$",
   "fields":[{"name":"derived$ReadWriter$lzy6"}]
 },
 {
-  "name":"com.calcul.model.RecordWeightRequest$",
+  "name":"ru.trett.calcul.model.RecordWeightRequest$",
   "fields":[{"name":"derived$ReadWriter$lzy14"}]
 },
 {
-  "name":"com.calcul.model.SetTargetRequest$",
+  "name":"ru.trett.calcul.model.SetTargetRequest$",
   "fields":[{"name":"derived$ReadWriter$lzy4"}]
 },
 {
-  "name":"com.calcul.model.User$",
+  "name":"ru.trett.calcul.model.User$",
   "fields":[{"name":"derived$ReadWriter$lzy1"}]
 },
 {
-  "name":"com.calcul.model.UserSummary$",
+  "name":"ru.trett.calcul.model.UserSummary$",
   "fields":[{"name":"derived$ReadWriter$lzy2"}]
 },
 {
