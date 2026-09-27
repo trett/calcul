@@ -1,22 +1,23 @@
 package ru.trett.calcul.server
 
-import java.nio.charset.StandardCharsets
-import java.sql.Connection
-import java.time.LocalDate
-import java.util.UUID
-import javax.sql.DataSource
 import org.slf4j.LoggerFactory
-import scala.util.{Failure, Success, Try, Using}
-import sttp.model.StatusCode
-import sttp.shared.Identity
-import sttp.tapir.*
-import sttp.tapir.server.ServerEndpoint
-import sttp.tapir.server.netty.sync.NettySyncServer
 import ru.trett.calcul.ai.GeminiService
 import ru.trett.calcul.api.Endpoints
 import ru.trett.calcul.auth.{AuthConfig, AuthService, CryptoUtils}
 import ru.trett.calcul.db.*
 import ru.trett.calcul.model.{GeminiKeyStatus, User, UserSummary}
+import sttp.model.StatusCode
+import sttp.shared.Identity
+import sttp.tapir.*
+import sttp.tapir.server.ServerEndpoint
+import sttp.tapir.server.netty.sync.NettySyncServer
+
+import java.nio.charset.StandardCharsets
+import java.sql.Connection
+import java.time.LocalDate
+import java.util.UUID
+import javax.sql.DataSource
+import scala.util.{Failure, Success, Try, Using}
 
 class ServerRoutes(
     transactor: DbTransactor,

@@ -1,14 +1,15 @@
 package ru.trett.calcul.server
 
 import munit.FunSuite
-import java.util.UUID
-import java.time.Instant
-import sttp.model.StatusCode
-import sttp.monad.IdentityMonad
 import ru.trett.calcul.ai.GeminiService
 import ru.trett.calcul.auth.CryptoUtils
 import ru.trett.calcul.db.{DbTransactor, TestPostgresContainer}
 import ru.trett.calcul.model.*
+import sttp.model.StatusCode
+import sttp.monad.IdentityMonad
+
+import java.time.Instant
+import java.util.UUID
 
 class UserGeminiKeyE2ESuite extends FunSuite:
 

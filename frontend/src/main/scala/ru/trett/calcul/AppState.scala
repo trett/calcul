@@ -2,10 +2,11 @@ package ru.trett.calcul
 
 import com.raquo.airstream.state.Var
 import org.scalajs.dom
+import ru.trett.calcul.model.*
+
+import java.time.LocalDate
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{Failure, Success}
-import java.time.LocalDate
-import ru.trett.calcul.model.*
 
 object AppState:
 

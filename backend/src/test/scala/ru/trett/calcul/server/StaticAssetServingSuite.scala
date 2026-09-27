@@ -2,8 +2,8 @@ package ru.trett.calcul.server
 
 import munit.FunSuite
 import ox.*
-import sttp.client4.quick.*
 import ru.trett.calcul.db.TestPostgresContainer
+import sttp.client4.quick.*
 
 class StaticAssetServingSuite extends FunSuite:
 

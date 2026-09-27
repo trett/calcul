@@ -1,6 +1,7 @@
 package ru.trett.calcul.model
 
 import upickle.default.*
+
 import java.time.{Instant, LocalDate}
 
 object Codecs:

@@ -1,9 +1,10 @@
 package ru.trett.calcul.db
 
 import munit.FunSuite
+import ru.trett.calcul.model.*
+
 import java.time.{Instant, LocalDate}
 import java.util.UUID
-import ru.trett.calcul.model.*
 
 class RepositorySuite extends FunSuite:
 

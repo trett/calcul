@@ -1,8 +1,9 @@
 package ru.trett.calcul.db
 
+import com.augustnagro.magnum.*
+
 import java.sql.Connection
 import javax.sql.DataSource
-import com.augustnagro.magnum.*
 
 trait DbTransactor:
   def withConnection[T](f: DbCon ?=> T): T

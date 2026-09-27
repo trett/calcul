@@ -1,6 +1,7 @@
 package ru.trett.calcul.db
 
 import org.testcontainers.containers.PostgreSQLContainer
+
 import java.sql.{Connection, DriverManager}
 import scala.util.Using
 

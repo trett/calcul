@@ -1,12 +1,13 @@
 package ru.trett.calcul.server
 
+import ru.trett.calcul.ai.GeminiService
+import ru.trett.calcul.db.{DbTransactor, MealRepository}
+import ru.trett.calcul.model.*
+
 import java.sql.Connection
 import java.time.{Instant, LocalDate}
 import java.util.UUID
 import javax.sql.DataSource
-import ru.trett.calcul.ai.GeminiService
-import ru.trett.calcul.db.{DbTransactor, MealRepository}
-import ru.trett.calcul.model.*
 
 class MealService(transactor: DbTransactor, gemini: GeminiService):
 

@@ -1,14 +1,15 @@
 package ru.trett.calcul
 
-import java.util.concurrent.atomic.AtomicInteger
-import scala.util.{Failure, Success}
-import scala.concurrent.ExecutionContext.Implicits.global
-import org.scalajs.dom
 import com.raquo.airstream.state.Var
 import com.raquo.laminar.api.L.*
-import java.time.LocalDate
+import org.scalajs.dom
 import ru.trett.calcul.ShoelaceDSL.*
 import ru.trett.calcul.model.{AnalyzeMealRequest, CreateMealItem, CreateMealRequest, UserSummary}
+
+import java.time.LocalDate
+import java.util.concurrent.atomic.AtomicInteger
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.util.{Failure, Success}
 
 object MealIngestionView:
 

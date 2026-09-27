@@ -1,8 +1,9 @@
 package ru.trett.calcul
 
 import munit.FunSuite
-import java.util.UUID
 import ru.trett.calcul.model.UserSummary
+
+import java.util.UUID
 
 class MealAnalysisGatingSuite extends FunSuite:
 

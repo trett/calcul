@@ -3,6 +3,7 @@ package ru.trett.calcul.db
 import com.augustnagro.magnum.*
 import com.augustnagro.magnum.DbCodec.given
 import ru.trett.calcul.model.*
+
 import java.sql.Date as SqlDate
 import java.time.{Instant, LocalDate, ZoneOffset}
 import java.util.UUID

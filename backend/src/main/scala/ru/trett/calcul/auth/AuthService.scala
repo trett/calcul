@@ -1,5 +1,11 @@
 package ru.trett.calcul.auth
 
+import org.slf4j.LoggerFactory
+import ru.trett.calcul.db.UserRepository
+import ru.trett.calcul.model.{User, UserSummary}
+import sttp.client4.*
+import sttp.model.StatusCode
+
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
@@ -7,13 +13,8 @@ import java.time.Instant
 import java.util.{Base64, UUID}
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
-import org.slf4j.LoggerFactory
 import scala.concurrent.duration.*
 import scala.util.{Failure, Success, Try}
-import sttp.client4.*
-import sttp.model.StatusCode
-import ru.trett.calcul.db.UserRepository
-import ru.trett.calcul.model.{User, UserSummary}
 
 final case class AuthConfig(
     clientId: String,

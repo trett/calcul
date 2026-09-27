@@ -1,13 +1,14 @@
 package ru.trett.calcul.ai
 
-import java.util.concurrent.atomic.AtomicReference
 import org.slf4j.LoggerFactory
+import ru.trett.calcul.model.{AnalyzedItem, MealAnalysisResponse}
+import sttp.client4.*
+import sttp.model.{StatusCode, Uri}
+
+import java.util.concurrent.atomic.AtomicReference
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.*
 import scala.util.{Failure, Success, Try}
-import sttp.client4.*
-import sttp.model.{StatusCode, Uri}
-import ru.trett.calcul.model.{AnalyzedItem, MealAnalysisResponse}
 
 class GeminiService(
     backend: SyncBackend = DefaultSyncBackend(BackendOptions.connectionTimeout(10.seconds))

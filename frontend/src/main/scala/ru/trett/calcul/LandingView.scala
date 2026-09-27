@@ -2,8 +2,9 @@ package ru.trett.calcul
 
 import com.raquo.laminar.api.L.*
 import org.scalajs.dom
-import scala.concurrent.ExecutionContext.Implicits.global
 import ru.trett.calcul.ShoelaceDSL.*
+
+import scala.concurrent.ExecutionContext.Implicits.global
 
 object LandingView:
 

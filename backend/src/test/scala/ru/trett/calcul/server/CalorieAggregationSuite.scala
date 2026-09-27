@@ -1,10 +1,11 @@
 package ru.trett.calcul.server
 
 import munit.FunSuite
-import java.time.{Instant, LocalDate}
-import java.util.UUID
 import ru.trett.calcul.db.{MealRepository, TestPostgresContainer, UserRepository}
 import ru.trett.calcul.model.*
+
+import java.time.{Instant, LocalDate}
+import java.util.UUID
 
 class CalorieAggregationSuite extends FunSuite:
 

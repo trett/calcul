@@ -1,12 +1,13 @@
 package ru.trett.calcul
 
-import com.raquo.laminar.api.L.*
 import com.raquo.airstream.state.Var
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.util.{Failure, Success}
-import java.time.LocalDate
+import com.raquo.laminar.api.L.*
 import ru.trett.calcul.ShoelaceDSL.*
 import ru.trett.calcul.model.RecordWeightRequest
+
+import java.time.LocalDate
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.util.{Failure, Success}
 
 object WeightView:
 

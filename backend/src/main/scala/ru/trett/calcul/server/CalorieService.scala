@@ -1,11 +1,12 @@
 package ru.trett.calcul.server
 
+import ru.trett.calcul.db.{DailyTargetRepository, DbTransactor, MealRepository}
+import ru.trett.calcul.model.{DailyCalorieSummary, DailyTarget, SetTargetRequest}
+
 import java.sql.Connection
 import java.time.LocalDate
 import java.util.UUID
 import javax.sql.DataSource
-import ru.trett.calcul.db.{DailyTargetRepository, DbTransactor, MealRepository}
-import ru.trett.calcul.model.{DailyCalorieSummary, DailyTarget, SetTargetRequest}
 
 class CalorieService(transactor: DbTransactor):
 

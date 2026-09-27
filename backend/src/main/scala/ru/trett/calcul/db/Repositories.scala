@@ -1,13 +1,14 @@
 package ru.trett.calcul.db
 
-import java.sql.Connection
-import java.time.LocalDate
-import java.util.UUID
-import javax.sql.DataSource
 import com.augustnagro.magnum.*
 import com.augustnagro.magnum.DbCodec.given
 import ru.trett.calcul.db.DbCodecs.given
 import ru.trett.calcul.model.*
+
+import java.sql.Connection
+import java.time.LocalDate
+import java.util.UUID
+import javax.sql.DataSource
 
 class UserRepository(transactor: DbTransactor):
 

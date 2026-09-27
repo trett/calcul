@@ -2,6 +2,7 @@ package ru.trett.calcul.model
 
 import munit.FunSuite
 import upickle.default.*
+
 import java.time.{Instant, LocalDate}
 import java.util.UUID
 
