@@ -1,9 +1,12 @@
 package ru.trett.calcul
 
 import org.scalajs.dom
-import org.scalajs.dom.{Headers, HttpMethod, RequestInit, Response}
+import ru.trett.calcul.api.Endpoints
 import ru.trett.calcul.model.*
-import upickle.default.*
+import sttp.client4.fetch.{FetchBackend, FetchOptions}
+import sttp.model.StatusCode
+import sttp.tapir.client.sttp4.SttpClientInterpreter
+import sttp.tapir.{DecodeResult, PublicEndpoint}
 
 import java.time.LocalDate
 import java.util.UUID
@@ -12,110 +15,86 @@ import scala.concurrent.Future
 
 object ApiClient:
 
-  private def request(
-      path: String,
-      httpMethod: HttpMethod,
-      httpBody: Option[String] = None,
-      httpContentType: Option[String] = Some("application/json")
-  ): Future[Response] =
-    val reqHeaders = new Headers()
-    httpContentType.foreach(ct => reqHeaders.set("Content-Type", ct))
+  private val backend =
+    FetchBackend(FetchOptions(credentials = Some(dom.RequestCredentials.include), mode = None))
+  private val interpreter = SttpClientInterpreter()
 
-    val init = new RequestInit:
-      this.method = httpMethod
-      this.headers = reqHeaders
-      this.credentials = dom.RequestCredentials.include
-      httpBody.foreach(b => this.body = b)
-
-    dom.Fetch.fetch(path, init).toFuture
-
-  private def extractErrorMessage(res: Response, defaultPrefix: String): Future[String] =
-    res
-      .text()
-      .toFuture
-      .map { body =>
-        val clean = body.trim
-        if clean.nonEmpty then clean
-        else if Option(res.statusText).exists(_.trim.nonEmpty) then s"$defaultPrefix: ${res.statusText}"
-        else s"$defaultPrefix (status ${res.status})"
-      }
-      .recover { _ =>
-        s"$defaultPrefix (status ${res.status})"
-      }
-
-  private def getJson[T: Reader](path: String): Future[T] =
-    request(path, HttpMethod.GET, httpContentType = None).flatMap: res =>
-      if res.ok then res.text().toFuture.map(read[T](_))
-      else extractErrorMessage(res, s"GET $path failed").flatMap(msg => Future.failed(new RuntimeException(msg)))
-
-  private def postJson[Req: Writer, Res: Reader](path: String, payload: Req): Future[Res] =
-    val json = write(payload)
-    request(path, HttpMethod.POST, httpBody = Some(json)).flatMap: res =>
-      if res.ok then res.text().toFuture.map(read[Res](_))
-      else extractErrorMessage(res, s"POST $path failed").flatMap(msg => Future.failed(new RuntimeException(msg)))
-
-  private def putJson[Req: Writer, Res: Reader](path: String, payload: Req): Future[Res] =
-    val json = write(payload)
-    request(path, HttpMethod.PUT, httpBody = Some(json)).flatMap: res =>
-      if res.ok then res.text().toFuture.map(read[Res](_))
-      else extractErrorMessage(res, s"PUT $path failed").flatMap(msg => Future.failed(new RuntimeException(msg)))
+  private def send[I, E, O](
+      endpoint: PublicEndpoint[I, E, O, Any],
+      input: I
+  ): Future[O] =
+    val req = interpreter.toRequest(endpoint, None).apply(input)
+    req.send(backend).flatMap { res =>
+      res.body match
+        case DecodeResult.Value(Right(out)) =>
+          Future.successful(out)
+        case DecodeResult.Value(Left((code: StatusCode, msg: String))) =>
+          val text = if msg.trim.nonEmpty then msg.trim else s"Request failed ($code)"
+          Future.failed(new RuntimeException(text))
+        case DecodeResult.Value(Left(msg: String)) =>
+          val text = if msg.trim.nonEmpty then msg.trim else s"Request failed (${res.code})"
+          Future.failed(new RuntimeException(text))
+        case DecodeResult.Value(Left(())) =>
+          Future.failed(new RuntimeException(s"Request failed (${res.code})"))
+        case DecodeResult.Value(Left(other)) =>
+          Future.failed(new RuntimeException(s"Request failed: $other"))
+        case DecodeResult.Error(_, error) =>
+          Future.failed(new RuntimeException(s"Failed to decode response: ${error.getMessage}"))
+        case failure =>
+          Future.failed(new RuntimeException(s"Failed to decode response: $failure"))
+    }
 
   // --- Auth APIs ---
   def getLoginUrl(): Future[String] =
-    request("/api/auth/login", HttpMethod.GET, httpContentType = None).flatMap: res =>
-      if res.ok then res.text().toFuture
-      else Future.failed(new RuntimeException(s"Get login URL failed: ${res.status}"))
+    send(Endpoints.loginEndpoint, ())
 
   def getCurrentUser(): Future[Option[UserSummary]] =
-    request("/api/auth/me", HttpMethod.GET, httpContentType = None).flatMap: res =>
-      if res.ok then res.text().toFuture.map(t => Some(read[UserSummary](t)))
-      else Future.successful(None)
+    val req = interpreter.toRequest(Endpoints.meEndpoint, None).apply(None)
+    req.send(backend).map { res =>
+      res.body match
+        case DecodeResult.Value(Right(summary)) => Some(summary)
+        case _                                  => None
+    }
 
   def logout(): Future[Unit] =
-    request("/api/auth/logout", HttpMethod.POST, httpContentType = None).flatMap: res =>
-      if res.ok then Future.successful(())
-      else Future.failed(new RuntimeException(s"Logout failed: ${res.status}"))
+    send(Endpoints.logoutEndpoint, ()).map(_ => ())
 
   // --- Meal & AI APIs ---
   def analyzeMeal(req: AnalyzeMealRequest): Future[MealAnalysisResponse] =
-    postJson[AnalyzeMealRequest, MealAnalysisResponse]("/api/meals/analyze", req)
+    send(Endpoints.analyzeMealEndpoint, (None, req))
 
   def analyzeMeal(descriptionOrPrompt: String): Future[MealAnalysisResponse] =
     analyzeMeal(AnalyzeMealRequest(description = Some(descriptionOrPrompt)))
 
   def createMeal(req: CreateMealRequest): Future[Meal] =
-    postJson[CreateMealRequest, Meal]("/api/meals", req)
+    send(Endpoints.createMealEndpoint, (None, req))
 
   def listMeals(date: LocalDate): Future[List[Meal]] =
-    getJson[List[Meal]](s"/api/meals?date=$date")
+    send(Endpoints.listMealsEndpoint, (None, date.toString))
 
   def deleteMeal(mealId: UUID): Future[Unit] =
-    request(s"/api/meals/$mealId", HttpMethod.DELETE, httpContentType = None).flatMap: res =>
-      if res.ok then Future.successful(())
-      else extractErrorMessage(res, "Delete meal failed").flatMap(msg => Future.failed(new RuntimeException(msg)))
+    send(Endpoints.deleteMealEndpoint, (None, mealId.toString)).map(_ => ())
 
   // --- Calorie Goals & Daily Aggregations ---
   def getDailyCalories(date: LocalDate): Future[DailyCalorieSummary] =
-    getJson[DailyCalorieSummary](s"/api/calories/daily?date=$date")
+    send(Endpoints.getDailyCaloriesEndpoint, (None, date.toString))
 
   def setDailyTarget(req: SetTargetRequest): Future[DailyTarget] =
-    putJson[SetTargetRequest, DailyTarget]("/api/calories/target", req)
+    send(Endpoints.setDailyTargetEndpoint, (None, req))
 
   // --- Weight Tracking APIs ---
   def recordWeight(req: RecordWeightRequest): Future[DailyWeight] =
-    postJson[RecordWeightRequest, DailyWeight]("/api/weights", req)
+    send(Endpoints.recordWeightEndpoint, (None, req))
 
   def getWeights(from: LocalDate, to: LocalDate): Future[List[DailyWeight]] =
-    getJson[List[DailyWeight]](s"/api/weights?from=$from&to=$to")
+    send(Endpoints.getWeightsEndpoint, (None, from.toString, to.toString))
 
   // --- User Settings APIs ---
   def getGeminiKeyStatus(): Future[GeminiKeyStatus] =
-    getJson[GeminiKeyStatus]("/api/user/settings/gemini-key")
+    send(Endpoints.getGeminiKeyStatusEndpoint, None)
 
   def saveGeminiKey(req: SaveGeminiKeyRequest): Future[GeminiKeyStatus] =
-    postJson[SaveGeminiKeyRequest, GeminiKeyStatus]("/api/user/settings/gemini-key", req)
+    send(Endpoints.saveGeminiKeyEndpoint, (None, req))
 
   def deleteGeminiKey(): Future[String] =
-    request("/api/user/settings/gemini-key", HttpMethod.DELETE, httpContentType = None).flatMap: res =>
-      if res.ok then res.text().toFuture
-      else extractErrorMessage(res, "Delete Gemini key failed").flatMap(msg => Future.failed(new RuntimeException(msg)))
+    send(Endpoints.deleteGeminiKeyEndpoint, None)

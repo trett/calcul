@@ -154,6 +154,8 @@ lazy val frontend = (project in file("frontend"))
     libraryDependencies ++= Seq(
       "com.raquo" %%% "laminar" % laminarVersion,
       "com.raquo" %%% "laminar-shoelace" % laminarShoelaceVersion,
+      "com.softwaremill.sttp.tapir" %%% "tapir-sttp-client4" % tapirVersion,
+      "com.softwaremill.sttp.client4" %%% "core" % sttpClientVersion,
       "org.scalameta" %%% "munit" % munitVersion % Test
     )
   )
