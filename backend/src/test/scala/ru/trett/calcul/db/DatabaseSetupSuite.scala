@@ -5,7 +5,7 @@ import munit.FunSuite
 class DatabaseSetupSuite extends FunSuite:
 
   test("TestDbInit executes schema.sql and creates all tables") {
-    val conn = TestPostgresContainer.newConnection()
+    val conn = TestPostgresContainer.dataSource.getConnection
     try
       val initResult = TestDbInit.initSchema(conn)
       assert(initResult.isRight, s"Schema init failed: $initResult")
@@ -19,7 +19,7 @@ class DatabaseSetupSuite extends FunSuite:
   }
 
   test("users table contains encrypted_gemini_api_key column") {
-    val conn = TestPostgresContainer.newConnection()
+    val conn = TestPostgresContainer.dataSource.getConnection
     try
       val initResult = TestDbInit.initSchema(conn)
       assert(initResult.isRight, s"Schema init failed: $initResult")

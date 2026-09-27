@@ -1,19 +1,14 @@
 package ru.trett.calcul.server
 
-import ru.trett.calcul.db.{DailyWeightRepository, DbTransactor}
+import ru.trett.calcul.db.{DB, DailyWeightRepository}
 import ru.trett.calcul.model.{DailyWeight, RecordWeightRequest}
 
-import java.sql.Connection
 import java.time.LocalDate
 import java.util.UUID
-import javax.sql.DataSource
 
-class WeightService(transactor: DbTransactor):
+class WeightService(db: DB):
 
-  def this(ds: DataSource) = this(DbTransactor.fromDataSource(ds))
-  def this(conn: Connection) = this(DbTransactor.fromConnection(conn))
-
-  private val weightRepo = new DailyWeightRepository(transactor)
+  private val weightRepo = new DailyWeightRepository(db)
 
   def recordWeight(userId: UUID, req: RecordWeightRequest): DailyWeight =
     val entry = DailyWeight(userId, req.weighDate, req.weight, req.unit)

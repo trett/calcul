@@ -11,20 +11,17 @@ import java.nio.file.Files
 class HealthcheckSuite extends FunSuite:
 
   test("ServerRoutes serves healthcheck endpoint on GET /api/health") {
-    val conn = TestPostgresContainer.newConnection()
-    try
-      val routes = new ServerRoutes(conn)
-      val server = routes.createServer(port = 8897)
+    val routes = new ServerRoutes(TestPostgresContainer.db)
+    val server = routes.createServer(port = 8897)
 
-      supervised {
-        val binding = server.start()
-        try
-          val response = quickRequest.get(uri"http://localhost:8897/api/health").send()
-          assertEquals(response.code.code, 200)
-          assert(response.body.contains("ok"))
-        finally binding.stop()
-      }
-    finally conn.close()
+    supervised {
+      val binding = server.start()
+      try
+        val response = quickRequest.get(uri"http://localhost:8897/api/health").send()
+        assertEquals(response.code.code, 200)
+        assert(response.body.contains("ok"))
+      finally binding.stop()
+    }
   }
 
   test("docker-compose.yml exists and specifies postgres schema initialization and calcul-backend image") {

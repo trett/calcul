@@ -2,22 +2,17 @@ package ru.trett.calcul.server
 
 import org.slf4j.LoggerFactory
 import ru.trett.calcul.ai.GeminiService
-import ru.trett.calcul.db.{DbTransactor, MealRepository}
+import ru.trett.calcul.db.{DB, MealRepository}
 import ru.trett.calcul.model.*
 
-import java.sql.Connection
 import java.time.{Instant, LocalDate}
 import java.util.UUID
-import javax.sql.DataSource
 
-class MealService(transactor: DbTransactor, gemini: GeminiService):
+class MealService(db: DB, gemini: GeminiService):
 
   private val logger = LoggerFactory.getLogger(getClass)
 
-  def this(ds: DataSource, gemini: GeminiService) = this(DbTransactor.fromDataSource(ds), gemini)
-  def this(conn: Connection, gemini: GeminiService) = this(DbTransactor.fromConnection(conn), gemini)
-
-  private val mealRepo = new MealRepository(transactor)
+  private val mealRepo = new MealRepository(db)
 
   def analyze(req: AnalyzeMealRequest, userApiKey: Option[String]): MealAnalysisResponse =
     gemini.analyzeMeal(req.description, req.imageBase64, req.mimeType, userApiKey = userApiKey)

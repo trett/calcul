@@ -4,7 +4,7 @@ import org.slf4j.LoggerFactory
 import ox.*
 import ru.trett.calcul.ai.GeminiService
 import ru.trett.calcul.auth.AuthConfig
-import ru.trett.calcul.db.DatabaseConfig
+import ru.trett.calcul.db.{DB, DatabaseConfig}
 import ru.trett.calcul.server.ServerRoutes
 
 object Main:
@@ -14,6 +14,7 @@ object Main:
   def main(args: Array[String]): Unit =
     val dbConfig   = DatabaseConfig.fromEnv()
     val dataSource = DatabaseConfig.createDataSource(dbConfig)
+    val db         = DB(dataSource)
 
     val geminiService = new GeminiService()
     val authConfig    = AuthConfig.fromEnv()
@@ -21,7 +22,7 @@ object Main:
     val host = sys.env.getOrElse("HOST", "0.0.0.0")
     val port = sys.env.get("PORT").flatMap(_.toIntOption).getOrElse(8080)
 
-    val routes = new ServerRoutes(dataSource, geminiService, authConfig)
+    val routes = new ServerRoutes(db, geminiService, authConfig)
     val server = routes.createServer(host, port)
 
     sys.addShutdownHook {
