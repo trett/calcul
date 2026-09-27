@@ -2,41 +2,30 @@ package ru.trett.calcul.db
 
 import java.sql.Connection
 import javax.sql.DataSource
-import scala.util.Using
+import com.augustnagro.magnum.*
 
 trait DbTransactor:
-  def withConnection[T](f: Connection => T): T
-  def withTransaction[T](f: Connection => T): T
+  def withConnection[T](f: DbCon ?=> T): T
+  def withTransaction[T](f: DbTx ?=> T): T
 
 object DbTransactor:
 
-  def fromDataSource(ds: DataSource): DbTransactor = new DbTransactor:
-    def withConnection[T](f: Connection => T): T =
-      Using.resource(ds.getConnection)(f)
+  def fromDataSource(ds: DataSource): DbTransactor =
+    fromTransactor(Transactor(ds))
 
-    def withTransaction[T](f: Connection => T): T =
-      Using.resource(ds.getConnection) { conn =>
-        val oldAutoCommit = conn.getAutoCommit
-        conn.setAutoCommit(false)
-        try
-          val result = f(conn)
-          conn.commit()
-          result
-        catch
-          case ex: Throwable =>
-            conn.rollback()
-            throw ex
-        finally conn.setAutoCommit(oldAutoCommit)
-      }
+  def fromTransactor(xa: Transactor): DbTransactor = new DbTransactor:
+    def withConnection[T](f: DbCon ?=> T): T = connect(xa)(f)
+    def withTransaction[T](f: DbTx ?=> T): T = transact(xa)(f)
 
   def fromConnection(conn: Connection): DbTransactor = new DbTransactor:
-    def withConnection[T](f: Connection => T): T = f(conn)
+    def withConnection[T](f: DbCon ?=> T): T =
+      f(using MagnumBridge.dbCon(conn))
 
-    def withTransaction[T](f: Connection => T): T =
+    def withTransaction[T](f: DbTx ?=> T): T =
       val oldAutoCommit = conn.getAutoCommit
       conn.setAutoCommit(false)
       try
-        val result = f(conn)
+        val result = f(using MagnumBridge.dbTx(conn))
         conn.commit()
         result
       catch
