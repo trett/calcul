@@ -13,32 +13,28 @@ import sttp.tapir.server.ServerEndpoint
 import sttp.tapir.server.netty.sync.NettySyncServer
 
 import java.nio.charset.StandardCharsets
-import java.sql.Connection
 import java.time.LocalDate
 import java.util.UUID
 import javax.sql.DataSource
 import scala.util.{Failure, Success, Try, Using}
 
 class ServerRoutes(
-    transactor: DbTransactor,
-    gemini: GeminiService = new GeminiService(),
-    authConfig: AuthConfig = AuthConfig.fromEnv()
+    val db: DB,
+    val gemini: GeminiService = new GeminiService(),
+    val authConfig: AuthConfig = AuthConfig.fromEnv()
 ):
 
-  def this(ds: DataSource) = this(DbTransactor.fromDataSource(ds), new GeminiService(), AuthConfig.fromEnv())
+  def this(ds: DataSource) = this(DB(ds), new GeminiService(), AuthConfig.fromEnv())
   def this(ds: DataSource, gemini: GeminiService, authConfig: AuthConfig) =
-    this(DbTransactor.fromDataSource(ds), gemini, authConfig)
-  def this(conn: Connection) = this(DbTransactor.fromConnection(conn), new GeminiService(), AuthConfig.fromEnv())
-  def this(conn: Connection, gemini: GeminiService, authConfig: AuthConfig) =
-    this(DbTransactor.fromConnection(conn), gemini, authConfig)
+    this(DB(ds), gemini, authConfig)
 
-  val userRepo: UserRepository          = new UserRepository(transactor)
-  val targetRepo: DailyTargetRepository = new DailyTargetRepository(transactor)
-  val mealRepo: MealRepository          = new MealRepository(transactor)
-  val weightRepo: DailyWeightRepository = new DailyWeightRepository(transactor)
-  val mealService: MealService          = new MealService(transactor, gemini)
-  val calorieService: CalorieService    = new CalorieService(transactor)
-  val weightService: WeightService      = new WeightService(transactor)
+  val userRepo: UserRepository          = new UserRepository(db)
+  val targetRepo: DailyTargetRepository = new DailyTargetRepository(db)
+  val mealRepo: MealRepository          = new MealRepository(db)
+  val weightRepo: DailyWeightRepository = new DailyWeightRepository(db)
+  val mealService: MealService          = new MealService(db, gemini)
+  val calorieService: CalorieService    = new CalorieService(db)
+  val weightService: WeightService      = new WeightService(db)
   val authService: AuthService          = new AuthService(userRepo, authConfig)
 
   private val logger = LoggerFactory.getLogger(getClass)

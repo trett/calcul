@@ -1,20 +1,18 @@
 package ru.trett.calcul.server
 
-import ru.trett.calcul.db.{DailyTargetRepository, DbTransactor, MealRepository}
+import ru.trett.calcul.db.{DB, DailyTargetRepository, MealRepository}
 import ru.trett.calcul.model.{DailyCalorieSummary, DailyTarget, SetTargetRequest}
 
-import java.sql.Connection
 import java.time.LocalDate
 import java.util.UUID
 import javax.sql.DataSource
 
-class CalorieService(transactor: DbTransactor):
+class CalorieService(db: DB):
 
-  def this(ds: DataSource) = this(DbTransactor.fromDataSource(ds))
-  def this(conn: Connection) = this(DbTransactor.fromConnection(conn))
+  def this(ds: DataSource) = this(DB(ds))
 
-  private val targetRepo = new DailyTargetRepository(transactor)
-  private val mealRepo   = new MealRepository(transactor)
+  private val targetRepo = new DailyTargetRepository(db)
+  private val mealRepo   = new MealRepository(db)
 
   def setTarget(userId: UUID, req: SetTargetRequest): DailyTarget =
     targetRepo.setTarget(userId, req.targetDate, req.calorieTarget)

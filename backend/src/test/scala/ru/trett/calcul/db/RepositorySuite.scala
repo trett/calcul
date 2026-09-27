@@ -12,14 +12,11 @@ class RepositorySuite extends FunSuite:
       testCode: (UserRepository, DailyTargetRepository, MealRepository, DailyWeightRepository) => Unit
   ): Unit =
     TestPostgresContainer.clearData()
-    val conn = TestPostgresContainer.newConnection()
-    try
-      val userRepo   = new UserRepository(conn)
-      val targetRepo = new DailyTargetRepository(conn)
-      val mealRepo   = new MealRepository(conn)
-      val weightRepo = new DailyWeightRepository(conn)
-      testCode(userRepo, targetRepo, mealRepo, weightRepo)
-    finally conn.close()
+    val userRepo   = new UserRepository(TestPostgresContainer.db)
+    val targetRepo = new DailyTargetRepository(TestPostgresContainer.db)
+    val mealRepo   = new MealRepository(TestPostgresContainer.db)
+    val weightRepo = new DailyWeightRepository(TestPostgresContainer.db)
+    testCode(userRepo, targetRepo, mealRepo, weightRepo)
 
   test("UserRepository upserts and finds users by ID and Google ID") {
     withRepos { (userRepo, _, _, _) =>

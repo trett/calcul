@@ -3,6 +3,7 @@ package ru.trett.calcul.db
 import org.testcontainers.containers.PostgreSQLContainer
 
 import java.sql.{Connection, DriverManager}
+import javax.sql.DataSource
 import scala.util.Using
 
 object TestPostgresContainer:
@@ -21,11 +22,23 @@ object TestPostgresContainer:
   def username: String = container.getUsername
   def password: String = container.getPassword
 
+  lazy val dataSource: DataSource =
+    DatabaseConfig.createDataSource(
+      DatabaseConfig(
+        jdbcUrl = jdbcUrl,
+        username = username,
+        password = password,
+        maximumPoolSize = 5
+      )
+    )
+
+  lazy val db: DB = DB(dataSource)
+
   def newConnection(): Connection =
-    DriverManager.getConnection(jdbcUrl, username, password)
+    dataSource.getConnection
 
   def clearData(): Unit =
-    Using.resource(newConnection()) { conn =>
+    Using.resource(dataSource.getConnection) { conn =>
       Using.resource(conn.createStatement()) { stmt =>
         stmt.execute("TRUNCATE TABLE meal_items, meals, daily_targets, daily_weights, users CASCADE;")
       }

@@ -5,18 +5,16 @@ import com.augustnagro.magnum.DbCodec.given
 import ru.trett.calcul.db.DbCodecs.given
 import ru.trett.calcul.model.*
 
-import java.sql.Connection
 import java.time.LocalDate
 import java.util.UUID
 import javax.sql.DataSource
 
-class UserRepository(transactor: DbTransactor):
+class UserRepository(db: DB):
 
-  def this(ds: DataSource) = this(DbTransactor.fromDataSource(ds))
-  def this(conn: Connection) = this(DbTransactor.fromConnection(conn))
+  def this(ds: DataSource) = this(DB(ds))
 
   def upsert(user: User): Unit =
-    transactor.withConnection {
+    db.withConnection {
       sql"""INSERT INTO users (id, google_id, email, name, picture_url, encrypted_gemini_api_key, created_at)
         VALUES (${user.id}, ${user.googleId}, ${user.email}, ${user.name}, ${user.pictureUrl}, ${user.encryptedGeminiApiKey}, ${user.createdAt})
         ON CONFLICT (google_id)
@@ -25,7 +23,7 @@ class UserRepository(transactor: DbTransactor):
     }
 
   def findById(id: UUID): Option[User] =
-    transactor.withConnection {
+    db.withConnection {
       sql"SELECT id, google_id, email, name, picture_url, created_at, encrypted_gemini_api_key FROM users WHERE id = $id"
         .query[User]
         .run()
@@ -33,7 +31,7 @@ class UserRepository(transactor: DbTransactor):
     }
 
   def findByGoogleId(googleId: String): Option[User] =
-    transactor.withConnection {
+    db.withConnection {
       sql"SELECT id, google_id, email, name, picture_url, created_at, encrypted_gemini_api_key FROM users WHERE google_id = $googleId"
         .query[User]
         .run()
@@ -41,17 +39,17 @@ class UserRepository(transactor: DbTransactor):
     }
 
   def updateGeminiKey(userId: UUID, encryptedKey: String): Unit =
-    transactor.withConnection {
+    db.withConnection {
       sql"UPDATE users SET encrypted_gemini_api_key = $encryptedKey WHERE id = $userId".update.run()
     }
 
   def clearGeminiKey(userId: UUID): Unit =
-    transactor.withConnection {
+    db.withConnection {
       sql"UPDATE users SET encrypted_gemini_api_key = NULL WHERE id = $userId".update.run()
     }
 
   def getEncryptedGeminiKey(userId: UUID): Option[String] =
-    transactor.withConnection {
+    db.withConnection {
       sql"SELECT encrypted_gemini_api_key FROM users WHERE id = $userId"
         .query[Option[String]]
         .run()
@@ -59,13 +57,12 @@ class UserRepository(transactor: DbTransactor):
         .flatten
     }
 
-class DailyTargetRepository(transactor: DbTransactor):
+class DailyTargetRepository(db: DB):
 
-  def this(ds: DataSource) = this(DbTransactor.fromDataSource(ds))
-  def this(conn: Connection) = this(DbTransactor.fromConnection(conn))
+  def this(ds: DataSource) = this(DB(ds))
 
   def setTarget(userId: UUID, targetDate: LocalDate, calorieTarget: Int): Unit =
-    transactor.withConnection {
+    db.withConnection {
       sql"""INSERT INTO daily_targets (user_id, target_date, calorie_target)
         VALUES ($userId, $targetDate, $calorieTarget)
         ON CONFLICT (user_id, target_date)
@@ -74,20 +71,19 @@ class DailyTargetRepository(transactor: DbTransactor):
     }
 
   def findTarget(userId: UUID, targetDate: LocalDate): Option[DailyTarget] =
-    transactor.withConnection {
+    db.withConnection {
       sql"SELECT user_id, target_date, calorie_target FROM daily_targets WHERE user_id = $userId AND target_date = $targetDate"
         .query[DailyTarget]
         .run()
         .headOption
     }
 
-class MealRepository(transactor: DbTransactor):
+class MealRepository(db: DB):
 
-  def this(ds: DataSource) = this(DbTransactor.fromDataSource(ds))
-  def this(conn: Connection) = this(DbTransactor.fromConnection(conn))
+  def this(ds: DataSource) = this(DB(ds))
 
   def insertMeal(meal: Meal): Either[String, Unit] =
-    transactor.withTransaction {
+    db.withTransaction {
       sql"""INSERT INTO meals (id, user_id, logged_at, meal_date, description, image_path, total_calories, ai_explanation)
         VALUES (${meal.id}, ${meal.userId}, ${meal.loggedAt}, ${meal.mealDate}, ${meal.description}, ${meal.imagePath}, ${meal.totalCalories}, ${meal.aiExplanation})
       """.update.run()
@@ -98,7 +94,7 @@ class MealRepository(transactor: DbTransactor):
     }
 
   def findMealsByDate(userId: UUID, mealDate: LocalDate): List[Meal] =
-    transactor.withConnection {
+    db.withConnection {
       val rawMeals =
         sql"""SELECT id, user_id, logged_at, meal_date, description, image_path, total_calories, ai_explanation
         FROM meals
@@ -126,12 +122,12 @@ class MealRepository(transactor: DbTransactor):
     }
 
   def deleteMeal(userId: UUID, mealId: UUID): Boolean =
-    transactor.withConnection {
+    db.withConnection {
       sql"DELETE FROM meals WHERE id = $mealId AND user_id = $userId".update.run() > 0
     }
 
   def getDailyCalorieStats(userId: UUID, mealDate: LocalDate): (Int, Int) =
-    transactor.withConnection {
+    db.withConnection {
       sql"""SELECT COALESCE(SUM(total_calories), 0)::int, COUNT(*)::int
         FROM meals
         WHERE user_id = $userId AND meal_date = $mealDate
@@ -155,13 +151,12 @@ class MealRepository(transactor: DbTransactor):
       ).query[MealItem].run()
       items.toList.groupBy(_.mealId)
 
-class DailyWeightRepository(transactor: DbTransactor):
+class DailyWeightRepository(db: DB):
 
-  def this(ds: DataSource) = this(DbTransactor.fromDataSource(ds))
-  def this(conn: Connection) = this(DbTransactor.fromConnection(conn))
+  def this(ds: DataSource) = this(DB(ds))
 
   def recordWeight(weight: DailyWeight): Unit =
-    transactor.withConnection {
+    db.withConnection {
       sql"""INSERT INTO daily_weights (user_id, weigh_date, weight, unit)
         VALUES (${weight.userId}, ${weight.weighDate}, ${weight.weight}, ${weight.unit})
         ON CONFLICT (user_id, weigh_date)
@@ -170,7 +165,7 @@ class DailyWeightRepository(transactor: DbTransactor):
     }
 
   def findWeightsInRange(userId: UUID, fromDate: LocalDate, toDate: LocalDate): List[DailyWeight] =
-    transactor.withConnection {
+    db.withConnection {
       sql"""SELECT user_id, weigh_date, weight, unit
         FROM daily_weights
         WHERE user_id = $userId AND weigh_date >= $fromDate AND weigh_date <= $toDate
