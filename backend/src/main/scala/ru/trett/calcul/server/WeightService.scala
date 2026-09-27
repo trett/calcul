@@ -5,11 +5,8 @@ import ru.trett.calcul.model.{DailyWeight, RecordWeightRequest}
 
 import java.time.LocalDate
 import java.util.UUID
-import javax.sql.DataSource
 
 class WeightService(db: DB):
-
-  def this(ds: DataSource) = this(DB(ds))
 
   private val weightRepo = new DailyWeightRepository(db)
 

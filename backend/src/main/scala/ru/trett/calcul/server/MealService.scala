@@ -7,13 +7,10 @@ import ru.trett.calcul.model.*
 
 import java.time.{Instant, LocalDate}
 import java.util.UUID
-import javax.sql.DataSource
 
 class MealService(db: DB, gemini: GeminiService):
 
   private val logger = LoggerFactory.getLogger(getClass)
-
-  def this(ds: DataSource, gemini: GeminiService) = this(DB(ds), gemini)
 
   private val mealRepo = new MealRepository(db)
 

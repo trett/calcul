@@ -7,11 +7,8 @@ import ru.trett.calcul.model.*
 
 import java.time.LocalDate
 import java.util.UUID
-import javax.sql.DataSource
 
 class UserRepository(db: DB):
-
-  def this(ds: DataSource) = this(DB(ds))
 
   def upsert(user: User): Unit =
     db.withConnection {
@@ -59,8 +56,6 @@ class UserRepository(db: DB):
 
 class DailyTargetRepository(db: DB):
 
-  def this(ds: DataSource) = this(DB(ds))
-
   def setTarget(userId: UUID, targetDate: LocalDate, calorieTarget: Int): Unit =
     db.withConnection {
       sql"""INSERT INTO daily_targets (user_id, target_date, calorie_target)
@@ -79,8 +74,6 @@ class DailyTargetRepository(db: DB):
     }
 
 class MealRepository(db: DB):
-
-  def this(ds: DataSource) = this(DB(ds))
 
   def insertMeal(meal: Meal): Either[String, Unit] =
     db.withTransaction {
@@ -152,8 +145,6 @@ class MealRepository(db: DB):
       items.toList.groupBy(_.mealId)
 
 class DailyWeightRepository(db: DB):
-
-  def this(ds: DataSource) = this(DB(ds))
 
   def recordWeight(weight: DailyWeight): Unit =
     db.withConnection {

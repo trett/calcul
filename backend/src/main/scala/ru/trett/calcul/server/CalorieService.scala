@@ -5,11 +5,8 @@ import ru.trett.calcul.model.{DailyCalorieSummary, DailyTarget, SetTargetRequest
 
 import java.time.LocalDate
 import java.util.UUID
-import javax.sql.DataSource
 
 class CalorieService(db: DB):
-
-  def this(ds: DataSource) = this(DB(ds))
 
   private val targetRepo = new DailyTargetRepository(db)
   private val mealRepo   = new MealRepository(db)

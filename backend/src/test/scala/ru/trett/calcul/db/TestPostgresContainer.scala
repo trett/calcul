@@ -1,8 +1,9 @@
 package ru.trett.calcul.db
 
+import com.augustnagro.magnum.*
 import org.testcontainers.containers.PostgreSQLContainer
 
-import java.sql.{Connection, DriverManager}
+import java.sql.DriverManager
 import javax.sql.DataSource
 import scala.util.Using
 
@@ -34,12 +35,8 @@ object TestPostgresContainer:
 
   lazy val db: DB = DB(dataSource)
 
-  def newConnection(): Connection =
-    dataSource.getConnection
-
   def clearData(): Unit =
-    Using.resource(dataSource.getConnection) { conn =>
-      Using.resource(conn.createStatement()) { stmt =>
-        stmt.execute("TRUNCATE TABLE meal_items, meals, daily_targets, daily_weights, users CASCADE;")
-      }
+    db.withConnection {
+      sql"TRUNCATE TABLE meal_items, meals, daily_targets, daily_weights, users CASCADE".update
+        .run()
     }

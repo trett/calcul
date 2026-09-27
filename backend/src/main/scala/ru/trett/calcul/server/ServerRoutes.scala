@@ -15,18 +15,13 @@ import sttp.tapir.server.netty.sync.NettySyncServer
 import java.nio.charset.StandardCharsets
 import java.time.LocalDate
 import java.util.UUID
-import javax.sql.DataSource
 import scala.util.{Failure, Success, Try, Using}
 
 class ServerRoutes(
-    val db: DB,
-    val gemini: GeminiService = new GeminiService(),
-    val authConfig: AuthConfig = AuthConfig.fromEnv()
+    db: DB,
+    gemini: GeminiService = new GeminiService(),
+    authConfig: AuthConfig = AuthConfig.fromEnv()
 ):
-
-  def this(ds: DataSource) = this(DB(ds), new GeminiService(), AuthConfig.fromEnv())
-  def this(ds: DataSource, gemini: GeminiService, authConfig: AuthConfig) =
-    this(DB(ds), gemini, authConfig)
 
   val userRepo: UserRepository          = new UserRepository(db)
   val targetRepo: DailyTargetRepository = new DailyTargetRepository(db)
