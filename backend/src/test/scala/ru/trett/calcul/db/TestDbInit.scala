@@ -2,6 +2,7 @@ package ru.trett.calcul.db
 
 import java.io.InputStream
 import java.sql.Connection
+import scala.collection.mutable
 import scala.io.Source
 import scala.util.Using
 
@@ -26,7 +27,7 @@ object TestDbInit:
     val md      = conn.getMetaData
     val nullStr = Option.empty[String].orNull
     Using.resource(md.getTables(nullStr, nullStr, "%", Array("TABLE"))) { rs =>
-      val tableNames = collection.mutable.Set[String]()
+      val tableNames = mutable.Set[String]()
       while rs.next() do tableNames.add(rs.getString("TABLE_NAME").toLowerCase)
       tableNames.toSet
     }

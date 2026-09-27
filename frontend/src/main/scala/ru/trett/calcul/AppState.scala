@@ -3,6 +3,7 @@ package ru.trett.calcul
 import com.raquo.airstream.state.Var
 import org.scalajs.dom
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.util.{Failure, Success}
 import java.time.LocalDate
 import ru.trett.calcul.model.*
 
@@ -76,11 +77,11 @@ object AppState:
     ApiClient
       .getCurrentUser()
       .onComplete {
-        case scala.util.Success(userOpt) =>
+        case Success(userOpt) =>
           currentUser.set(userOpt)
           isAuthChecking.set(false)
           if userOpt.isDefined then loadDailyData()
-        case scala.util.Failure(_) =>
+        case Failure(_) =>
           currentUser.set(None)
           isAuthChecking.set(false)
       }

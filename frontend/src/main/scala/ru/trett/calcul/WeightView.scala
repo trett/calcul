@@ -3,6 +3,7 @@ package ru.trett.calcul
 import com.raquo.laminar.api.L.*
 import com.raquo.airstream.state.Var
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.util.{Failure, Success}
 import java.time.LocalDate
 import ru.trett.calcul.ShoelaceDSL.*
 import ru.trett.calcul.model.RecordWeightRequest
@@ -24,12 +25,12 @@ object WeightView:
           val req = RecordWeightRequest(weighDateVar.now(), w, unitVar.now())
           isSavingVar.set(true)
           ApiClient.recordWeight(req).onComplete {
-            case scala.util.Success(_) =>
+            case Success(_) =>
               isSavingVar.set(false)
               weightInputVar.set("")
               AppState.notify(s"Logged weight: $w ${unitVar.now()}", "success")
               AppState.loadWeights()
-            case scala.util.Failure(err) =>
+            case Failure(err) =>
               isSavingVar.set(false)
               AppState.notify(s"Failed to save weight: ${err.getMessage}", "danger")
           }

@@ -8,13 +8,13 @@ import com.raquo.airstream.state.Var
 import com.raquo.laminar.api.L.*
 import java.time.LocalDate
 import ru.trett.calcul.ShoelaceDSL.*
-import ru.trett.calcul.model.{AnalyzeMealRequest, CreateMealItem, CreateMealRequest}
+import ru.trett.calcul.model.{AnalyzeMealRequest, CreateMealItem, CreateMealRequest, UserSummary}
 
 object MealIngestionView:
 
   final case class EditableItem(id: Int, name: Var[String], calories: Var[Int])
 
-  def canAnalyze(userOpt: Option[ru.trett.calcul.model.UserSummary]): Boolean =
+  def canAnalyze(userOpt: Option[UserSummary]): Boolean =
     userOpt.exists(_.hasGeminiKey)
 
   def apply(): HtmlElement =

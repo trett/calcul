@@ -1,8 +1,8 @@
 package ru.trett.calcul
 
-import com.raquo.laminar.tags.HtmlTag
-import com.raquo.laminar.keys.HtmlAttr
 import com.raquo.laminar.codecs.*
+import com.raquo.laminar.keys.{EventProp, HtmlAttr}
+import com.raquo.laminar.tags.HtmlTag
 import org.scalajs.dom
 
 object ShoelaceDSL:
@@ -47,5 +47,5 @@ object ShoelaceDSL:
     new HtmlAttr[Boolean]("password-toggle", BooleanAsAttrPresenceCodec)
 
   // Common Shoelace Event Props
-  val onSlRequestClose: com.raquo.laminar.keys.EventProp[dom.Event] =
-    new com.raquo.laminar.keys.EventProp[dom.Event]("sl-request-close")
+  val onSlRequestClose: EventProp[dom.Event] =
+    new EventProp[dom.Event]("sl-request-close")

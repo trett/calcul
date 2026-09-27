@@ -3,6 +3,7 @@ package ru.trett.calcul
 import com.raquo.laminar.api.L.*
 import com.raquo.airstream.state.Var
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.util.{Failure, Success}
 import ru.trett.calcul.ShoelaceDSL.*
 import ru.trett.calcul.model.SetTargetRequest
 
@@ -18,11 +19,11 @@ object DashboardView:
         catch case _: Exception => 2000
       val req = SetTargetRequest(AppState.selectedDate.now(), t)
       ApiClient.setDailyTarget(req).onComplete {
-        case scala.util.Success(_) =>
+        case Success(_) =>
           targetModalOpen.set(false)
           AppState.notify(s"Daily target updated to $t kcal", "success")
           AppState.loadDailyData()
-        case scala.util.Failure(err) =>
+        case Failure(err) =>
           AppState.notify(s"Failed to update target: ${err.getMessage}", "danger")
       }
 
@@ -258,10 +259,10 @@ object DashboardView:
                       "Delete",
                       onClick --> { _ =>
                         ApiClient.deleteMeal(meal.id).onComplete {
-                          case scala.util.Success(_) =>
+                          case Success(_) =>
                             AppState.notify("Meal deleted", "neutral")
                             AppState.loadDailyData()
-                          case scala.util.Failure(err) =>
+                          case Failure(err) =>
                             AppState.notify(s"Failed to delete meal: ${err.getMessage}", "danger")
                         }
                       }

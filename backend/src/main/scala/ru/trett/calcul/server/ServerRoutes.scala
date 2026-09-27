@@ -6,12 +6,12 @@ import java.time.LocalDate
 import java.util.UUID
 import javax.sql.DataSource
 import org.slf4j.LoggerFactory
-import scala.util.{Try, Using}
+import scala.util.{Failure, Success, Try, Using}
 import sttp.model.StatusCode
 import sttp.shared.Identity
+import sttp.tapir.*
 import sttp.tapir.server.ServerEndpoint
 import sttp.tapir.server.netty.sync.NettySyncServer
-import sttp.tapir.stringToPath
 import ru.trett.calcul.ai.GeminiService
 import ru.trett.calcul.api.Endpoints
 import ru.trett.calcul.auth.{AuthConfig, AuthService, CryptoUtils}
@@ -70,8 +70,8 @@ class ServerRoutes(
           logger.error("Authentication failed: unable to obtain user profile from Google OAuth code")
           (StatusCode.Found, Some("/?auth_error=google_failed"), None)
     } match
-      case scala.util.Success(res) => res
-      case scala.util.Failure(ex) =>
+      case Success(res) => res
+      case Failure(ex) =>
         logger.error(s"Unexpected error during Google OAuth callback processing", ex)
         (StatusCode.Found, Some("/?auth_error=server_error"), None)
 
@@ -79,12 +79,12 @@ class ServerRoutes(
     Endpoints.callbackEndpoint.serverLogicSuccess[Identity](handleCallback)
 
   val legacyCallbackRoute =
-    sttp.tapir.endpoint.get
+    endpoint.get
       .in("auth" / "callback")
-      .in(sttp.tapir.query[String]("code"))
-      .out(sttp.tapir.statusCode)
-      .out(sttp.tapir.header[Option[String]]("Location"))
-      .out(sttp.tapir.header[Option[String]]("Set-Cookie"))
+      .in(query[String]("code"))
+      .out(statusCode)
+      .out(header[Option[String]]("Location"))
+      .out(header[Option[String]]("Set-Cookie"))
       .summary("Legacy /auth/callback alias for Google OAuth2")
       .serverLogicSuccess[Identity](handleCallback)
 
@@ -214,9 +214,9 @@ class ServerRoutes(
     }
 
   val indexRoute: ServerEndpoint[Any, Identity] =
-    sttp.tapir.endpoint.get
-      .in(sttp.tapir.stringToPath(""))
-      .out(sttp.tapir.htmlBodyUtf8)
+    endpoint.get
+      .in(stringToPath(""))
+      .out(htmlBodyUtf8)
       .summary("Serve Single Page Application index.html")
       .serverLogicSuccess[Identity] { _ =>
         Option(getClass.getClassLoader.getResourceAsStream("webapp/index.html")) match
@@ -230,10 +230,10 @@ class ServerRoutes(
       }
 
   val assetsRoute: ServerEndpoint[Any, Identity] =
-    sttp.tapir.endpoint.get
-      .in("assets" / sttp.tapir.paths)
-      .out(sttp.tapir.byteArrayBody)
-      .out(sttp.tapir.header[String]("Content-Type"))
+    endpoint.get
+      .in("assets" / paths)
+      .out(byteArrayBody)
+      .out(header[String]("Content-Type"))
       .summary("Serve static web assets")
       .serverLogicSuccess[Identity] { pathList =>
         val relativePath = pathList.mkString("/")
@@ -255,9 +255,9 @@ class ServerRoutes(
       }
 
   val healthRoute: ServerEndpoint[Any, Identity] =
-    sttp.tapir.endpoint.get
+    endpoint.get
       .in("api" / "health")
-      .out(sttp.tapir.stringBody)
+      .out(stringBody)
       .summary("Healthcheck endpoint")
       .serverLogicSuccess[Identity](_ => """{"status":"ok"}""")
 

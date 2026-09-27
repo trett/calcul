@@ -3,7 +3,7 @@ package ru.trett.calcul.model
 import upickle.default.*
 import java.time.{Instant, LocalDate}
 import java.util.UUID
-import ru.trett.calcul.model.Codecs.given
+import Codecs.given
 
 final case class User(
     id: UUID,

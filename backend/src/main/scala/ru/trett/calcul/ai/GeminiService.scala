@@ -1,8 +1,10 @@
 package ru.trett.calcul.ai
 
+import java.util.concurrent.atomic.AtomicReference
 import org.slf4j.LoggerFactory
+import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.*
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 import sttp.client4.*
 import sttp.model.{StatusCode, Uri}
 import ru.trett.calcul.model.{AnalyzedItem, MealAnalysisResponse}
@@ -16,8 +18,8 @@ class GeminiService(
   private val ModelsEndpoint: Uri =
     uri"https://generativelanguage.googleapis.com/v1beta/models?pageSize=1"
 
-  private val activeModel: java.util.concurrent.atomic.AtomicReference[Option[String]] =
-    new java.util.concurrent.atomic.AtomicReference(sys.env.get("GEMINI_MODEL").filter(_.trim.nonEmpty))
+  private val activeModel: AtomicReference[Option[String]] =
+    new AtomicReference(sys.env.get("GEMINI_MODEL").filter(_.trim.nonEmpty))
 
   private def formatModel(model: String): String =
     val clean = model.trim.stripPrefix("/")
@@ -103,8 +105,8 @@ class GeminiService(
         Try(
           callGeminiApi(key.trim, description.getOrElse("Meal photo nutritional analysis"), base64Image, mimeType)
         ) match
-          case scala.util.Success(res) => res
-          case scala.util.Failure(ex) =>
+          case Success(res) => res
+          case Failure(ex) =>
             logger.warn(s"Gemini API call failed with exception, falling back to local estimation: ${ex.getMessage}")
             fallbackEstimation(description.getOrElse("Meal"))
       case None =>
@@ -116,7 +118,7 @@ class GeminiService(
       base64Image: Option[String],
       mimeType: Option[String]
   ): MealAnalysisResponse =
-    val parts = collection.mutable.ListBuffer[ujson.Obj]()
+    val parts = ListBuffer[ujson.Obj]()
 
     val systemInstruction =
       """You are an expert clinical dietitian and nutritional estimation engine.
