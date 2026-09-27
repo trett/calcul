@@ -1,10 +1,11 @@
 package ru.trett.calcul
 
 import com.raquo.laminar.api.L.*
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.util.{Failure, Success}
 import ru.trett.calcul.ShoelaceDSL.*
 import ru.trett.calcul.model.SaveGeminiKeyRequest
+
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.util.{Failure, Success}
 
 object SettingsView:
 

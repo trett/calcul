@@ -2,12 +2,13 @@ package ru.trett.calcul
 
 import org.scalajs.dom
 import org.scalajs.dom.{Headers, HttpMethod, RequestInit, Response}
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
+import ru.trett.calcul.model.*
 import upickle.default.*
+
 import java.time.LocalDate
 import java.util.UUID
-import ru.trett.calcul.model.*
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 object ApiClient:
 

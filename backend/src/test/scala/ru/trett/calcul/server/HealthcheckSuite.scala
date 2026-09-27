@@ -1,11 +1,12 @@
 package ru.trett.calcul.server
 
 import munit.FunSuite
+import ox.*
+import ru.trett.calcul.db.TestPostgresContainer
+import sttp.client4.quick.*
+
 import java.io.File
 import java.nio.file.Files
-import ox.*
-import sttp.client4.quick.*
-import ru.trett.calcul.db.TestPostgresContainer
 
 class HealthcheckSuite extends FunSuite:
 

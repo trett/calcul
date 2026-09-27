@@ -1,8 +1,10 @@
 package ru.trett.calcul.model
 
 import upickle.default.*
+
 import java.time.{Instant, LocalDate}
 import java.util.UUID
+
 import Codecs.given
 
 final case class User(

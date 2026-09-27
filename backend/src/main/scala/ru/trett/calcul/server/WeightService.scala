@@ -1,11 +1,12 @@
 package ru.trett.calcul.server
 
+import ru.trett.calcul.db.{DailyWeightRepository, DbTransactor}
+import ru.trett.calcul.model.{DailyWeight, RecordWeightRequest}
+
 import java.sql.Connection
 import java.time.LocalDate
 import java.util.UUID
 import javax.sql.DataSource
-import ru.trett.calcul.db.{DailyWeightRepository, DbTransactor}
-import ru.trett.calcul.model.{DailyWeight, RecordWeightRequest}
 
 class WeightService(transactor: DbTransactor):
 

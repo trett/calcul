@@ -1,8 +1,9 @@
 package ru.trett.calcul.auth
 
 import munit.FunSuite
-import java.util.UUID
 import ru.trett.calcul.db.{TestPostgresContainer, UserRepository}
+
+import java.util.UUID
 
 class AuthServiceSuite extends FunSuite:
 

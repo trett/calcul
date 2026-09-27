@@ -1,13 +1,14 @@
 package ru.trett.calcul.server
 
-import java.time.{Instant, LocalDate}
-import java.util.UUID
 import munit.FunSuite
-import sttp.model.StatusCode
-import sttp.monad.IdentityMonad
 import ru.trett.calcul.ai.GeminiService
 import ru.trett.calcul.db.{DbTransactor, TestPostgresContainer}
 import ru.trett.calcul.model.*
+import sttp.model.StatusCode
+import sttp.monad.IdentityMonad
+
+import java.time.{Instant, LocalDate}
+import java.util.UUID
 
 class ServerRoutesSuite extends FunSuite:
 

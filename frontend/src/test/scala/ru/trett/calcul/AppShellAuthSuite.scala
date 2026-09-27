@@ -1,9 +1,10 @@
 package ru.trett.calcul
 
-import munit.FunSuite
-import java.util.UUID
 import com.raquo.laminar.api.L.*
+import munit.FunSuite
 import ru.trett.calcul.model.UserSummary
+
+import java.util.UUID
 
 class AppShellAuthSuite extends FunSuite:
 

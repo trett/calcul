@@ -1,9 +1,10 @@
 package ru.trett.calcul.db
 
 import munit.FunSuite
+import ru.trett.calcul.model.*
+
 import java.time.{Instant, LocalDate}
 import java.util.UUID
-import ru.trett.calcul.model.*
 
 class RepositorySuite extends FunSuite:
 
@@ -110,7 +111,7 @@ class RepositorySuite extends FunSuite:
         items = List(item1, item2)
       )
 
-      mealRepo.insertMeal(meal)
+      assertEquals(mealRepo.insertMeal(meal), Right(()))
       val meals = mealRepo.findMealsByDate(userId, today)
       assertEquals(meals.size, 1)
       assertEquals(meals.head.items.size, 2)

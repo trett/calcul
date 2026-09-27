@@ -1,10 +1,10 @@
 package ru.trett.calcul.api
 
+import ru.trett.calcul.model.*
 import sttp.model.StatusCode
 import sttp.tapir.*
 import sttp.tapir.generic.auto.*
 import sttp.tapir.json.upickle.*
-import ru.trett.calcul.model.*
 
 object Endpoints:
 

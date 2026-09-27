@@ -2,9 +2,10 @@ package ru.trett.calcul
 
 import com.raquo.laminar.api.L.*
 import org.scalajs.dom
-import scala.concurrent.ExecutionContext.Implicits.global
-import java.time.LocalDate
 import ru.trett.calcul.ShoelaceDSL.*
+
+import java.time.LocalDate
+import scala.concurrent.ExecutionContext.Implicits.global
 
 object HeaderView:
 

@@ -1,14 +1,18 @@
 package ru.trett.calcul.server
 
-import java.sql.Connection
-import java.time.{Instant, LocalDate}
-import java.util.UUID
-import javax.sql.DataSource
+import org.slf4j.LoggerFactory
 import ru.trett.calcul.ai.GeminiService
 import ru.trett.calcul.db.{DbTransactor, MealRepository}
 import ru.trett.calcul.model.*
 
+import java.sql.Connection
+import java.time.{Instant, LocalDate}
+import java.util.UUID
+import javax.sql.DataSource
+
 class MealService(transactor: DbTransactor, gemini: GeminiService):
+
+  private val logger = LoggerFactory.getLogger(getClass)
 
   def this(ds: DataSource, gemini: GeminiService) = this(DbTransactor.fromDataSource(ds), gemini)
   def this(conn: Connection, gemini: GeminiService) = this(DbTransactor.fromConnection(conn), gemini)
@@ -54,7 +58,9 @@ class MealService(transactor: DbTransactor, gemini: GeminiService):
       items = items
     )
 
-    mealRepo.insertMeal(meal)
+    mealRepo.insertMeal(meal) match
+      case Left(err) => logger.error(s"Failed to insert meal into database: $err")
+      case Right(_)  => ()
     meal
 
   def listMeals(userId: UUID, date: LocalDate): List[Meal] =

@@ -1,6 +1,7 @@
 package ru.trett.calcul.db
 
 import org.testcontainers.containers.PostgreSQLContainer
+
 import java.sql.{Connection, DriverManager}
 import scala.util.Using
 
@@ -10,7 +11,9 @@ object TestPostgresContainer:
     val c = new PostgreSQLContainer("postgres:16-alpine")
     c.start()
     Using.resource(DriverManager.getConnection(c.getJdbcUrl, c.getUsername, c.getPassword)) { conn =>
-      TestDbInit.initSchema(conn)
+      TestDbInit.initSchema(conn) match
+        case Left(err) => System.err.println(s"Failed to initialize test schema: $err")
+        case Right(_)  => ()
     }
     c
 

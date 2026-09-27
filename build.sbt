@@ -135,6 +135,7 @@ lazy val backend = (project in file("backend"))
       "com.softwaremill.sttp.client4" %% "core" % sttpClientVersion,
       "com.softwaremill.sttp.tapir" %% "tapir-netty-server-sync" % tapirVersion,
       "com.softwaremill.sttp.ai" %% "gemini" % sttpAiVersion,
+      "com.augustnagro" %% "magnum" % "1.3.1",
       "org.postgresql" % "postgresql" % postgresqlVersion,
       "com.zaxxer" % "HikariCP" % hikariVersion,
       "org.slf4j" % "slf4j-api" % slf4jVersion,
