@@ -2,6 +2,7 @@ package ru.trett.calcul
 
 import com.raquo.laminar.api.L.*
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.util.{Failure, Success}
 import ru.trett.calcul.ShoelaceDSL.*
 import ru.trett.calcul.model.SaveGeminiKeyRequest
 
@@ -63,10 +64,10 @@ object SettingsView:
                   "Remove Key",
                   onClick --> { _ =>
                     ApiClient.deleteGeminiKey().onComplete {
-                      case scala.util.Success(_) =>
+                      case Success(_) =>
                         AppState.currentUser.update(_.map(_.copy(hasGeminiKey = false, maskedGeminiKey = None)))
                         AppState.notify("Gemini API key removed", "neutral")
-                      case scala.util.Failure(err) =>
+                      case Failure(err) =>
                         AppState.notify(s"Failed to remove API key: ${err.getMessage}", "danger")
                     }
                   }
@@ -150,13 +151,13 @@ object SettingsView:
               isSubmitting.set(true)
               errorMessage.set(None)
               ApiClient.saveGeminiKey(SaveGeminiKeyRequest(key)).onComplete {
-                case scala.util.Success(status) =>
+                case Success(status) =>
                   isSubmitting.set(false)
                   AppState.currentUser.update(_.map(_.copy(hasGeminiKey = true, maskedGeminiKey = status.maskedKey)))
                   newKeyVar.set("")
                   AppState.notify("Gemini API key validated and saved successfully!", "success")
                   AppState.isSettingsOpen.set(false)
-                case scala.util.Failure(err) =>
+                case Failure(err) =>
                   isSubmitting.set(false)
                   val msg = err.getMessage
                   val cleanMsg =

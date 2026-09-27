@@ -1,6 +1,8 @@
 package ru.trett.calcul
 
 import com.raquo.laminar.api.L.*
+import org.scalajs.dom
+import scala.concurrent.ExecutionContext.Implicits.global
 import java.time.LocalDate
 import ru.trett.calcul.ShoelaceDSL.*
 
@@ -132,7 +134,6 @@ object HeaderView:
                 slVariant := "neutral",
                 "Sign Out",
                 onClick --> { _ =>
-                  import scala.concurrent.ExecutionContext.Implicits.global
                   ApiClient.logout().foreach { _ =>
                     AppState.currentUser.set(None)
                     AppState.notify("Signed out successfully", "neutral")
@@ -147,9 +148,8 @@ object HeaderView:
               slIcon(slName := "google", slSlot := "prefix"),
               "Sign in with Google",
               onClick --> { _ =>
-                import scala.concurrent.ExecutionContext.Implicits.global
                 ApiClient.getLoginUrl().foreach { url =>
-                  org.scalajs.dom.window.location.href = url
+                  dom.window.location.href = url
                 }
               }
             )

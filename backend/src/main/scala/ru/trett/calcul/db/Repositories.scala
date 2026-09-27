@@ -1,9 +1,10 @@
 package ru.trett.calcul.db
 
 import java.sql.{Connection, Date as SqlDate, ResultSet, Timestamp}
-import java.time.LocalDate
+import java.time.{Instant, LocalDate}
 import java.util.UUID
 import javax.sql.DataSource
+import scala.collection.mutable.ListBuffer
 import scala.util.{Try, Using}
 import ru.trett.calcul.model.*
 
@@ -93,7 +94,7 @@ class UserRepository(transactor: DbTransactor):
       case s: String => UUID.fromString(s)
       case other     => UUID.fromString(other.toString)
     val encKey    = Try(rs.getString("encrypted_gemini_api_key")).toOption.flatMap(Option(_))
-    val createdAt = Option(rs.getTimestamp("created_at")).map(_.toInstant).getOrElse(java.time.Instant.now())
+    val createdAt = Option(rs.getTimestamp("created_at")).map(_.toInstant).getOrElse(Instant.now())
     User(
       id = id,
       googleId = rs.getString("google_id"),
@@ -190,7 +191,7 @@ class MealRepository(transactor: DbTransactor):
           |ORDER BY logged_at ASC
         """.stripMargin
 
-      val mealBuffers = collection.mutable.ListBuffer[Meal]()
+      val mealBuffers = ListBuffer[Meal]()
       Using.resource(conn.prepareStatement(mealSql)) { ps =>
         ps.setObject(1, userId)
         ps.setDate(2, SqlDate.valueOf(mealDate))
@@ -251,7 +252,7 @@ class MealRepository(transactor: DbTransactor):
       val placeholders = mealIds.map(_ => "?").mkString(",")
       val itemSql =
         s"SELECT id, meal_id, item_name, estimated_calories FROM meal_items WHERE meal_id IN ($placeholders)"
-      val items = collection.mutable.ListBuffer[MealItem]()
+      val items = ListBuffer[MealItem]()
       Using.resource(conn.prepareStatement(itemSql)) { ps =>
         mealIds.zipWithIndex.foreach { case (id, idx) =>
           ps.setObject(idx + 1, id)
@@ -298,7 +299,7 @@ class DailyWeightRepository(transactor: DbTransactor):
           |WHERE user_id = ? AND weigh_date >= ? AND weigh_date <= ?
           |ORDER BY weigh_date ASC
         """.stripMargin
-      val weights = collection.mutable.ListBuffer[DailyWeight]()
+      val weights = ListBuffer[DailyWeight]()
       Using.resource(conn.prepareStatement(sql)) { ps =>
         ps.setObject(1, userId)
         ps.setDate(2, SqlDate.valueOf(fromDate))

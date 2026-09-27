@@ -25,7 +25,7 @@ class AppShellAuthSuite extends FunSuite:
     assertEquals(AppState.currentUser.now(), Some(testUser))
     assert(Option(AppState.isAuthChecking).isDefined, "isAuthChecking signal should exist")
 
-    val shell = AppShell(com.raquo.laminar.api.L.div("Authenticated Content"))
+    val shell = AppShell(div("Authenticated Content"))
     assert(Option(shell).isDefined, "AppShell should be created")
     assert(Option(shell.ref).isDefined, "AppShell ref should be defined")
   }
