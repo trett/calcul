@@ -38,24 +38,24 @@ object CryptoUtils:
     Base64.getEncoder.encodeToString(combined)
 
   def decrypt(ciphertextBase64: String, secret: String): Either[String, String] =
-    Try {
-      val combined = Base64.getDecoder.decode(ciphertextBase64)
-      if combined.length < GcmIvLengthBytes then
-        throw new IllegalArgumentException("Ciphertext is too short to contain IV")
+    Try(Base64.getDecoder.decode(ciphertextBase64)).toEither.left.map(_.getMessage).flatMap { combined =>
+      if combined.length < GcmIvLengthBytes then Left("Ciphertext is too short to contain IV")
+      else
+        Try {
+          val iv          = new Array[Byte](GcmIvLengthBytes)
+          val cipherBytes = new Array[Byte](combined.length - GcmIvLengthBytes)
+          System.arraycopy(combined, 0, iv, 0, GcmIvLengthBytes)
+          System.arraycopy(combined, GcmIvLengthBytes, cipherBytes, 0, cipherBytes.length)
 
-      val iv          = new Array[Byte](GcmIvLengthBytes)
-      val cipherBytes = new Array[Byte](combined.length - GcmIvLengthBytes)
-      System.arraycopy(combined, 0, iv, 0, GcmIvLengthBytes)
-      System.arraycopy(combined, GcmIvLengthBytes, cipherBytes, 0, cipherBytes.length)
+          val key    = deriveKey(secret)
+          val cipher = Cipher.getInstance(Transformation)
+          val spec   = new GCMParameterSpec(GcmTagLengthBits, iv)
+          cipher.init(Cipher.DECRYPT_MODE, key, spec)
 
-      val key    = deriveKey(secret)
-      val cipher = Cipher.getInstance(Transformation)
-      val spec   = new GCMParameterSpec(GcmTagLengthBits, iv)
-      cipher.init(Cipher.DECRYPT_MODE, key, spec)
-
-      val decryptedBytes = cipher.doFinal(cipherBytes)
-      new String(decryptedBytes, StandardCharsets.UTF_8)
-    }.toEither.left.map(_.getMessage)
+          val decryptedBytes = cipher.doFinal(cipherBytes)
+          new String(decryptedBytes, StandardCharsets.UTF_8)
+        }.toEither.left.map(_.getMessage)
+    }
 
   def maskKey(key: String): String =
     if key.length <= 4 then "••••"

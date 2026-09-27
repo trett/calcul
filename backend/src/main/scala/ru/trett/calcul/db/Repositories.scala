@@ -86,7 +86,7 @@ class MealRepository(transactor: DbTransactor):
   def this(ds: DataSource) = this(DbTransactor.fromDataSource(ds))
   def this(conn: Connection) = this(DbTransactor.fromConnection(conn))
 
-  def insertMeal(meal: Meal): Unit =
+  def insertMeal(meal: Meal): Either[String, Unit] =
     transactor.withTransaction {
       sql"""INSERT INTO meals (id, user_id, logged_at, meal_date, description, image_path, total_calories, ai_explanation)
         VALUES (${meal.id}, ${meal.userId}, ${meal.loggedAt}, ${meal.mealDate}, ${meal.description}, ${meal.imagePath}, ${meal.totalCalories}, ${meal.aiExplanation})
