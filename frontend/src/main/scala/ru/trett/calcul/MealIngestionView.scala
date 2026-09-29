@@ -124,7 +124,7 @@ object MealIngestionView:
           textArea(
             cls := "meal-description-input",
             placeholder := "What did you eat? E.g. 'Grilled salmon with quinoa and asparagus, glass of sparkling water'",
-            styleAttr := "box-sizing: border-box; width: 100%; max-width: 100%; min-height: 80px; padding: 0.75rem; border: 1px solid var(--sl-color-neutral-300); border-radius: var(--sl-border-radius-medium); font-family: inherit; font-size: 0.95rem; resize: vertical; background: var(--sl-input-background-color); color: var(--sl-color-neutral-900);",
+            styleAttr := "box-sizing: border-box; width: 100%; max-width: 100%; min-height: 80px; padding: 0.75rem; border: 1px solid var(--sl-color-neutral-300); border-radius: var(--sl-border-radius-medium); font-family: inherit; font-size: 16px; resize: vertical; background: var(--sl-input-background-color); color: var(--sl-color-neutral-900);",
             controlled(
               value <-- descriptionVar.signal,
               onInput.mapToValue --> descriptionVar.writer
@@ -138,6 +138,7 @@ object MealIngestionView:
               styleAttr := "display: inline-flex; align-items: center; gap: 0.4rem; cursor: pointer; padding: 0.4rem 0.8rem; border: 1px dashed var(--sl-color-neutral-400); border-radius: var(--sl-border-radius-medium); font-size: 0.85rem; color: var(--sl-color-neutral-700);",
               slIcon(slName := "camera", styleAttr := "font-size: 1rem;"),
               span(
+                cls := "meal-photo-filename",
                 child.text <-- selectedFileNameVar.signal.map {
                   case Some(name) => s"Photo: $name"
                   case None       => "Attach food photo"
@@ -186,7 +187,8 @@ object MealIngestionView:
       slDialog(
         slOpen <-- reviewModalOpenVar.signal,
         slLabel   := "Review Meal Breakdown",
-        styleAttr := "--width: 620px;",
+        styleAttr := "--width: min(620px, calc(100vw - 2rem));",
+        onSlRequestClose --> (_ => reviewModalOpenVar.set(false)),
         div(
           styleAttr := "display: flex; flex-direction: column; gap: 1rem;",
 
@@ -202,11 +204,11 @@ object MealIngestionView:
 
           // Date selection
           div(
-            styleAttr := "display: flex; align-items: center; justify-content: space-between;",
+            styleAttr := "display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;",
             span(styleAttr := "font-weight: 500; font-size: 0.9rem;", "Date:"),
             input(
               tpe := "date",
-              styleAttr := "padding: 0.3rem 0.5rem; border: 1px solid var(--sl-color-neutral-300); border-radius: var(--sl-border-radius-medium);",
+              styleAttr := "padding: 0.3rem 0.5rem; border: 1px solid var(--sl-color-neutral-300); border-radius: var(--sl-border-radius-medium); font-size: 16px; background: var(--sl-input-background-color); color: var(--sl-color-neutral-900); max-width: 140px; min-width: 0;",
               value <-- AppState.selectedDate.signal.map(_.toString),
               onChange.mapToValue --> { v =>
                 Option(v).filter(_.nonEmpty).foreach { str =>
@@ -224,38 +226,42 @@ object MealIngestionView:
             children <-- reviewItemsVar.signal.map { items =>
               items.map { item =>
                 div(
-                  styleAttr := "display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem; background-color: var(--sl-color-neutral-100); border-radius: var(--sl-border-radius-medium);",
+                  cls := "meal-review-item-row",
                   input(
                     tpe         := "text",
                     placeholder := "Item name",
-                    styleAttr := "flex: 2; padding: 0.35rem 0.6rem; border: 1px solid var(--sl-color-neutral-300); border-radius: var(--sl-border-radius-medium); font-size: 0.9rem;",
+                    cls         := "meal-item-name-input",
                     controlled(
                       value <-- item.name.signal,
                       onInput.mapToValue --> item.name.writer
                     )
                   ),
-                  input(
-                    tpe         := "number",
-                    placeholder := "kcal",
-                    styleAttr := "flex: 1; max-width: 100px; padding: 0.35rem 0.6rem; border: 1px solid var(--sl-color-neutral-300); border-radius: var(--sl-border-radius-medium); font-size: 0.9rem;",
-                    controlled(
-                      value <-- item.calories.signal.map(_.toString),
-                      onInput.mapToValue --> { v =>
-                        val n =
-                          try v.toInt
-                          catch case _: Exception => 0
-                        item.calories.set(n)
+                  div(
+                    cls := "meal-item-cals-group",
+                    input(
+                      tpe         := "number",
+                      placeholder := "kcal",
+                      cls         := "meal-item-cals-input",
+                      controlled(
+                        value <-- item.calories.signal.map(_.toString),
+                        onInput.mapToValue --> { v =>
+                          val n =
+                            try v.toInt
+                            catch case _: Exception => 0
+                          item.calories.set(n)
+                        }
+                      )
+                    ),
+                    span(styleAttr := "font-size: 0.85rem; color: var(--sl-color-neutral-600);", "kcal"),
+                    slButton(
+                      slSize    := "small",
+                      slVariant := "neutral",
+                      title     := "Remove item",
+                      slIcon(slName := "trash"),
+                      onClick --> { _ =>
+                        reviewItemsVar.update(_.filterNot(_.id == item.id))
                       }
                     )
-                  ),
-                  span(styleAttr := "font-size: 0.85rem; color: var(--sl-color-neutral-600);", "kcal"),
-                  slButton(
-                    slSize    := "small",
-                    slVariant := "neutral",
-                    slIcon(slName := "trash"),
-                    onClick --> { _ =>
-                      reviewItemsVar.update(_.filterNot(_.id == item.id))
-                    }
                   )
                 )
               }

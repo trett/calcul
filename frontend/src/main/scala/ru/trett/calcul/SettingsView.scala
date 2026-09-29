@@ -24,7 +24,8 @@ object SettingsView:
     }
 
     slDialog(
-      slLabel := "User Settings & Gemini API Key",
+      slLabel   := "User Settings & Gemini API Key",
+      styleAttr := "--width: min(500px, calc(100vw - 2rem));",
       slOpen <-- AppState.isSettingsOpen.signal,
       onSlRequestClose --> (_ => closeDialog()),
       // Sync textfield value whenever settings dialog is opened
@@ -49,7 +50,10 @@ object SettingsView:
                 ),
                 div(
                   div(styleAttr := "font-weight: 600; font-size: 1rem;", u.name),
-                  div(styleAttr := "font-size: 0.85rem; color: var(--sl-color-neutral-500);", u.email)
+                  div(
+                    styleAttr := "font-size: 0.85rem; color: var(--sl-color-neutral-500); word-break: break-all;",
+                    u.email
+                  )
                 )
               )
             )
@@ -106,8 +110,8 @@ object SettingsView:
 
       // Dialog Actions
       div(
-        slSlot    := "footer",
-        styleAttr := "display: flex; justify-content: space-between; align-items: center; width: 100%;",
+        slSlot := "footer",
+        styleAttr := "display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; width: 100%;",
         slButton(
           slVariant := "danger",
           slOutline := true,
