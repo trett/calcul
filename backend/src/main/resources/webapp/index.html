@@ -11,12 +11,309 @@
     *, *::before, *::after {
       box-sizing: border-box;
     }
-    body {
+    html, body {
       margin: 0;
       padding: 0;
       background-color: var(--sl-color-neutral-50);
       color: var(--sl-color-neutral-900);
       font-family: var(--sl-font-sans);
+      overflow-x: hidden;
+      width: 100%;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    /* Shoelace Dialog Responsive Overrides */
+    sl-dialog {
+      --width: min(100vw - 1.5rem, var(--dialog-panel-width, 600px));
+    }
+    sl-dialog::part(panel) {
+      max-width: calc(100vw - 1.5rem);
+      margin: 0.75rem auto;
+    }
+    sl-dialog::part(body) {
+      padding: 1rem;
+      overflow-x: hidden;
+    }
+
+    /* Input font-size minimum to prevent iOS Safari auto-zoom */
+    input, textarea, select {
+      font-size: 16px;
+    }
+
+    /* Notification toast responsive positioning */
+    .app-toast-container {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      left: 1rem;
+      max-width: 480px;
+      margin-left: auto;
+      z-index: 1000;
+      box-shadow: var(--sl-shadow-large);
+      border-radius: var(--sl-border-radius-medium);
+    }
+
+    /* Responsive header styles */
+    .app-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--sl-color-neutral-200);
+      background-color: var(--sl-panel-background-color);
+      gap: 0.75rem;
+    }
+    @media (min-width: 768px) {
+      .app-header {
+        padding: 1rem 1.5rem;
+        gap: 1rem;
+      }
+    }
+
+    .header-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      order: 1;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      order: 2;
+    }
+    @media (min-width: 768px) {
+      .header-actions {
+        order: 3;
+        gap: 0.75rem;
+      }
+    }
+
+    .header-nav {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      width: 100%;
+      order: 3;
+    }
+    @media (min-width: 768px) {
+      .header-nav {
+        flex-direction: row;
+        width: auto;
+        order: 2;
+        gap: 1rem;
+      }
+    }
+
+    .header-user-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .header-user-name {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--sl-color-neutral-800);
+      max-width: 120px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    @media (max-width: 640px) {
+      .header-user-name {
+        display: none;
+      }
+      .header-btn-text {
+        display: none;
+      }
+    }
+
+    .date-navigator {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35rem;
+      width: 100%;
+    }
+    @media (min-width: 768px) {
+      .date-navigator {
+        width: auto;
+      }
+    }
+    .date-picker-input {
+      padding: 0.25rem 0.5rem;
+      border: 1px solid var(--sl-color-neutral-300);
+      border-radius: var(--sl-border-radius-medium);
+      font-size: 0.85rem;
+      background: var(--sl-input-background-color);
+      color: var(--sl-color-neutral-900);
+      max-width: 130px;
+      min-width: 0;
+    }
+
+    .header-tabs {
+      width: 100%;
+      display: flex;
+    }
+    .header-tabs sl-button {
+      flex: 1;
+    }
+    @media (min-width: 768px) {
+      .header-tabs {
+        width: auto;
+        display: inline-flex;
+      }
+      .header-tabs sl-button {
+        flex: none;
+      }
+    }
+
+    /* Key metrics grid */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.75rem;
+      text-align: center;
+    }
+    @media (max-width: 480px) {
+      .metrics-grid {
+        gap: 0.4rem;
+      }
+    }
+    @media (max-width: 320px) {
+      .metrics-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Meal Review Modal Items */
+    .meal-review-item-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.4rem 0.6rem;
+      background-color: var(--sl-color-neutral-100);
+      border-radius: var(--sl-border-radius-medium);
+    }
+    .meal-item-name-input {
+      flex: 2;
+      min-width: 0;
+      padding: 0.35rem 0.6rem;
+      border: 1px solid var(--sl-color-neutral-300);
+      border-radius: var(--sl-border-radius-medium);
+      font-size: 0.9rem;
+      box-sizing: border-box;
+    }
+    .meal-item-cals-group {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      flex: 1;
+    }
+    .meal-item-cals-input {
+      width: 80px;
+      min-width: 0;
+      padding: 0.35rem 0.5rem;
+      border: 1px solid var(--sl-color-neutral-300);
+      border-radius: var(--sl-border-radius-medium);
+      font-size: 0.9rem;
+      box-sizing: border-box;
+    }
+    @media (max-width: 480px) {
+      .meal-review-item-row {
+        flex-wrap: wrap;
+        gap: 0.4rem;
+      }
+      .meal-item-name-input {
+        flex: 1 1 100%;
+        width: 100%;
+      }
+      .meal-item-cals-group {
+        width: 100%;
+        justify-content: flex-end;
+      }
+    }
+
+    /* Photo Attachment in Meal Logger */
+    .meal-photo-filename {
+      max-width: 180px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    @media (max-width: 400px) {
+      .meal-photo-filename {
+        max-width: 120px;
+      }
+    }
+
+    /* Weigh-In Form */
+    .weigh-in-form {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: flex-end;
+    }
+    .weigh-in-field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+    .weigh-in-weight-field {
+      flex: 1;
+      min-width: 120px;
+    }
+    .weigh-in-label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--sl-color-neutral-700);
+    }
+    .weigh-in-input {
+      box-sizing: border-box;
+      width: 100%;
+      padding: 0.45rem 0.75rem;
+      border: 1px solid var(--sl-color-neutral-300);
+      border-radius: var(--sl-border-radius-medium);
+      font-size: 0.95rem;
+    }
+    @media (max-width: 640px) {
+      .weigh-in-form {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+      }
+      .weigh-in-save-btn {
+        grid-column: 1 / -1;
+        width: 100%;
+      }
+    }
+
+    /* Weight History 4 Stats Grid */
+    .weight-metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      text-align: center;
+    }
+    @media (max-width: 640px) {
+      .weight-metrics-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem;
+      }
+    }
+
+    /* Landing Page Grid */
+    .landing-features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+      gap: 1.5rem;
+      text-align: left;
+      margin-bottom: 3rem;
     }
   </style>
 </head>

@@ -57,15 +57,15 @@ object WeightView:
 
         // Card Body
         div(
-          styleAttr := "display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end;",
+          cls := "weigh-in-form",
 
           // Date input
           div(
-            styleAttr := "display: flex; flex-direction: column; gap: 0.35rem;",
-            label(styleAttr := "font-size: 0.85rem; font-weight: 600; color: var(--sl-color-neutral-700);", "Date"),
+            cls := "weigh-in-field",
+            label(cls := "weigh-in-label", "Date"),
             input(
               tpe := "date",
-              styleAttr := "padding: 0.45rem 0.75rem; border: 1px solid var(--sl-color-neutral-300); border-radius: var(--sl-border-radius-medium); font-size: 0.95rem;",
+              cls := "weigh-in-input",
               value <-- weighDateVar.signal.map(_.toString),
               onChange.mapToValue --> { v =>
                 Option(v).filter(_.nonEmpty).foreach { str =>
@@ -78,13 +78,13 @@ object WeightView:
 
           // Weight numeric input
           div(
-            styleAttr := "display: flex; flex-direction: column; gap: 0.35rem; flex: 1; min-width: 140px;",
-            label(styleAttr := "font-size: 0.85rem; font-weight: 600; color: var(--sl-color-neutral-700);", "Weight"),
+            cls := "weigh-in-field weigh-in-weight-field",
+            label(cls := "weigh-in-label", "Weight"),
             input(
               tpe         := "number",
               stepAttr    := "0.1",
               placeholder := "e.g. 75.5",
-              styleAttr := "box-sizing: border-box; width: 100%; max-width: 100%; padding: 0.45rem 0.75rem; border: 1px solid var(--sl-color-neutral-300); border-radius: var(--sl-border-radius-medium); font-size: 0.95rem;",
+              cls         := "weigh-in-input",
               controlled(
                 value <-- weightInputVar.signal,
                 onInput.mapToValue --> weightInputVar.writer
@@ -94,8 +94,8 @@ object WeightView:
 
           // Unit toggle
           div(
-            styleAttr := "display: flex; flex-direction: column; gap: 0.35rem;",
-            label(styleAttr := "font-size: 0.85rem; font-weight: 600; color: var(--sl-color-neutral-700);", "Unit"),
+            cls := "weigh-in-field",
+            label(cls := "weigh-in-label", "Unit"),
             slButtonGroup(
               slButton(
                 slVariant <-- unitVar.signal.map(u => if u == "kg" then "primary" else "default"),
@@ -112,6 +112,7 @@ object WeightView:
 
           // Save button
           slButton(
+            cls       := "weigh-in-save-btn",
             slVariant := "primary",
             slLoading <-- isSavingVar.signal,
             slDisabled <-- isSavingVar.signal,
@@ -148,7 +149,7 @@ object WeightView:
 
           // Trend Metrics Row
           div(
-            styleAttr := "display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; text-align: center;",
+            cls := "weight-metrics-grid",
 
             // Latest
             div(

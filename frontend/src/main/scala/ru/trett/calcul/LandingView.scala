@@ -11,7 +11,7 @@ object LandingView:
   def apply(): HtmlElement =
     div(
       cls       := "landing-container",
-      styleAttr := "max-width: 900px; margin: 2rem auto; padding: 1.5rem; text-align: center;",
+      styleAttr := "max-width: 900px; margin: 2rem auto; padding: clamp(1rem, 4vw, 1.5rem); text-align: center;",
 
       // Hero Section
       div(
@@ -29,7 +29,7 @@ object LandingView:
           )
         ),
         h1(
-          styleAttr := "font-size: 2.25rem; font-weight: 800; line-height: 1.25; margin: 0 0 1rem 0; color: var(--sl-color-neutral-900);",
+          styleAttr := "font-size: clamp(1.75rem, 5vw, 2.25rem); font-weight: 800; line-height: 1.25; margin: 0 0 1rem 0; color: var(--sl-color-neutral-900);",
           "Smart Calorie & Nutrition Tracking Powered by AI"
         ),
         p(
@@ -58,7 +58,7 @@ object LandingView:
 
       // Feature Highlights Grid
       div(
-        styleAttr := "display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; text-align: left; margin-bottom: 3rem;",
+        cls := "landing-features-grid",
         slCard(
           div(
             slSlot    := "header",

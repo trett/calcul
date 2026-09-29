@@ -12,11 +12,10 @@ object HeaderView:
   def apply(): HtmlElement =
     headerTag(
       cls := "app-header",
-      styleAttr := "display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.5rem; border-bottom: 1px solid var(--sl-color-neutral-200); background-color: var(--sl-panel-background-color); flex-wrap: wrap; gap: 1rem;",
 
       // Brand / Logo
       div(
-        styleAttr := "display: flex; align-items: center; gap: 0.5rem; cursor: pointer;",
+        cls := "header-brand",
         onClick --> (_ => AppState.activeTab.set("dashboard")),
         slIcon(slName := "fire", styleAttr := "font-size: 1.8rem; color: var(--sl-color-primary-600);"),
         span(
@@ -34,10 +33,10 @@ object HeaderView:
         case Some(_) =>
           Some(
             div(
-              styleAttr := "display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;",
+              cls := "header-nav",
               // Date Navigator
               div(
-                styleAttr := "display: flex; align-items: center; gap: 0.4rem;",
+                cls := "date-navigator",
                 slButton(
                   slSize    := "small",
                   slVariant := "neutral",
@@ -48,7 +47,7 @@ object HeaderView:
                   slSize    := "small",
                   slVariant := "default",
                   child.text <-- AppState.selectedDate.signal.map { d =>
-                    if d == DateUtils.today() then s"Today, $d" else d.toString
+                    if d == DateUtils.today() then "Today" else d.toString
                   },
                   onClick --> (_ => AppState.setToday())
                 ),
@@ -61,7 +60,6 @@ object HeaderView:
                 input(
                   tpe := "date",
                   cls := "date-picker-input",
-                  styleAttr := "padding: 0.25rem 0.5rem; border: 1px solid var(--sl-color-neutral-300); border-radius: var(--sl-border-radius-medium); font-size: 0.85rem; background: var(--sl-input-background-color); color: var(--sl-color-neutral-900);",
                   value <-- AppState.selectedDate.signal.map(_.toString),
                   onChange.mapToValue --> { v =>
                     Option(v).filter(_.nonEmpty).foreach { str =>
@@ -73,6 +71,7 @@ object HeaderView:
               ),
               // Navigation Tabs (Dashboard vs Weight History)
               slButtonGroup(
+                cls := "header-tabs",
                 slButton(
                   slSize := "small",
                   slVariant <-- AppState.activeTab.signal.map(t => if t == "dashboard" then "primary" else "default"),
@@ -98,7 +97,7 @@ object HeaderView:
 
       // Right Section: Theme Toggle & User Profile
       div(
-        styleAttr := "display: flex; align-items: center; gap: 0.75rem;",
+        cls := "header-actions",
         // Theme switch
         slButton(
           slSize    := "small",
@@ -113,27 +112,28 @@ object HeaderView:
         child <-- AppState.currentUser.signal.map {
           case Some(u) =>
             div(
-              styleAttr := "display: flex; align-items: center; gap: 0.5rem;",
+              cls := "header-user-row",
               slAvatar(
-                styleAttr  := "font-size: 1.8rem;",
+                styleAttr  := "font-size: 1.8rem; flex-shrink: 0;",
                 slImage    := u.pictureUrl.getOrElse(""),
                 slInitials := u.name.take(2).toUpperCase
               ),
               span(
-                styleAttr := "font-size: 0.9rem; font-weight: 500; color: var(--sl-color-neutral-800);",
+                cls := "header-user-name",
                 u.name
               ),
               slButton(
                 slSize    := "small",
                 slVariant := "neutral",
                 slIcon(slName := "gear", slSlot := "prefix"),
-                "Settings",
+                span(cls      := "header-btn-text", "Settings"),
                 onClick --> (_ => AppState.isSettingsOpen.set(true))
               ),
               slButton(
                 slSize    := "small",
                 slVariant := "neutral",
-                "Sign Out",
+                slIcon(slName := "box-arrow-right", slSlot := "prefix"),
+                span(cls      := "header-btn-text", "Sign Out"),
                 onClick --> { _ =>
                   ApiClient.logout().foreach { _ =>
                     AppState.currentUser.set(None)

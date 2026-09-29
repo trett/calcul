@@ -15,7 +15,7 @@ object AppShell:
         case Some((variant, msg)) =>
           Some(
             div(
-              styleAttr := "position: fixed; top: 1rem; right: 1rem; z-index: 1000; min-width: 280px; box-shadow: var(--sl-shadow-large); border-radius: var(--sl-border-radius-medium);",
+              cls := "app-toast-container",
               slAlert(
                 slOpen    := true,
                 slVariant := variant,
