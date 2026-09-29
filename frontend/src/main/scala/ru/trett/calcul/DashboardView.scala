@@ -289,6 +289,7 @@ object DashboardView:
         slOpen <-- targetModalOpen.signal,
         slLabel   := "Set Daily Calorie Target",
         styleAttr := "--width: min(400px, calc(100vw - 2rem));",
+        onSlRequestClose --> (_ => targetModalOpen.set(false)),
         div(
           styleAttr := "display: flex; flex-direction: column; gap: 1rem;",
           p(
@@ -298,7 +299,7 @@ object DashboardView:
           input(
             tpe         := "number",
             placeholder := "2000",
-            styleAttr := "box-sizing: border-box; width: 100%; padding: 0.5rem 0.75rem; border: 1px solid var(--sl-color-neutral-300); border-radius: var(--sl-border-radius-medium); font-size: 1rem;",
+            styleAttr := "box-sizing: border-box; width: 100%; padding: 0.5rem 0.75rem; border: 1px solid var(--sl-color-neutral-300); border-radius: var(--sl-border-radius-medium); font-size: 16px; background: var(--sl-input-background-color); color: var(--sl-color-neutral-900);",
             controlled(
               value <-- targetInput.signal,
               onInput.mapToValue --> targetInput.writer

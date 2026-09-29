@@ -124,7 +124,7 @@ object MealIngestionView:
           textArea(
             cls := "meal-description-input",
             placeholder := "What did you eat? E.g. 'Grilled salmon with quinoa and asparagus, glass of sparkling water'",
-            styleAttr := "box-sizing: border-box; width: 100%; max-width: 100%; min-height: 80px; padding: 0.75rem; border: 1px solid var(--sl-color-neutral-300); border-radius: var(--sl-border-radius-medium); font-family: inherit; font-size: 0.95rem; resize: vertical; background: var(--sl-input-background-color); color: var(--sl-color-neutral-900);",
+            styleAttr := "box-sizing: border-box; width: 100%; max-width: 100%; min-height: 80px; padding: 0.75rem; border: 1px solid var(--sl-color-neutral-300); border-radius: var(--sl-border-radius-medium); font-family: inherit; font-size: 16px; resize: vertical; background: var(--sl-input-background-color); color: var(--sl-color-neutral-900);",
             controlled(
               value <-- descriptionVar.signal,
               onInput.mapToValue --> descriptionVar.writer
@@ -147,7 +147,6 @@ object MealIngestionView:
               input(
                 tpe       := "file",
                 accept    := "image/*",
-                slCapture := "environment",
                 styleAttr := "display: none;",
                 onChange --> { (e: dom.Event) =>
                   val target = e.target.asInstanceOf[dom.HTMLInputElement]
@@ -189,6 +188,7 @@ object MealIngestionView:
         slOpen <-- reviewModalOpenVar.signal,
         slLabel   := "Review Meal Breakdown",
         styleAttr := "--width: min(620px, calc(100vw - 2rem));",
+        onSlRequestClose --> (_ => reviewModalOpenVar.set(false)),
         div(
           styleAttr := "display: flex; flex-direction: column; gap: 1rem;",
 
@@ -208,7 +208,7 @@ object MealIngestionView:
             span(styleAttr := "font-weight: 500; font-size: 0.9rem;", "Date:"),
             input(
               tpe := "date",
-              styleAttr := "padding: 0.3rem 0.5rem; border: 1px solid var(--sl-color-neutral-300); border-radius: var(--sl-border-radius-medium); max-width: 140px; min-width: 0;",
+              styleAttr := "padding: 0.3rem 0.5rem; border: 1px solid var(--sl-color-neutral-300); border-radius: var(--sl-border-radius-medium); font-size: 16px; background: var(--sl-input-background-color); color: var(--sl-color-neutral-900); max-width: 140px; min-width: 0;",
               value <-- AppState.selectedDate.signal.map(_.toString),
               onChange.mapToValue --> { v =>
                 Option(v).filter(_.nonEmpty).foreach { str =>
@@ -256,6 +256,7 @@ object MealIngestionView:
                     slButton(
                       slSize    := "small",
                       slVariant := "neutral",
+                      title     := "Remove item",
                       slIcon(slName := "trash"),
                       onClick --> { _ =>
                         reviewItemsVar.update(_.filterNot(_.id == item.id))

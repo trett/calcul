@@ -137,6 +137,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      flex-wrap: wrap;
       gap: 0.35rem;
       width: 100%;
     }
@@ -149,7 +150,7 @@
       padding: 0.25rem 0.5rem;
       border: 1px solid var(--sl-color-neutral-300);
       border-radius: var(--sl-border-radius-medium);
-      font-size: 0.85rem;
+      font-size: 16px;
       background: var(--sl-input-background-color);
       color: var(--sl-color-neutral-900);
       max-width: 130px;
@@ -182,13 +183,35 @@
     }
     @media (max-width: 480px) {
       .metrics-grid {
-        gap: 0.4rem;
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
       }
     }
-    @media (max-width: 320px) {
-      .metrics-grid {
-        grid-template-columns: 1fr;
-      }
+
+    /* Meal Card Header */
+    .meal-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .meal-card-title-group {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      min-width: 0;
+    }
+    .meal-card-description {
+      font-weight: 600;
+      font-size: 1rem;
+      word-break: break-word;
+    }
+    .meal-card-time {
+      font-size: 0.8rem;
+      color: var(--sl-color-neutral-500);
+      white-space: nowrap;
     }
 
     /* Meal Review Modal Items */
@@ -206,8 +229,10 @@
       padding: 0.35rem 0.6rem;
       border: 1px solid var(--sl-color-neutral-300);
       border-radius: var(--sl-border-radius-medium);
-      font-size: 0.9rem;
+      font-size: 16px;
       box-sizing: border-box;
+      background: var(--sl-input-background-color);
+      color: var(--sl-color-neutral-900);
     }
     .meal-item-cals-group {
       display: flex;
@@ -221,8 +246,10 @@
       padding: 0.35rem 0.5rem;
       border: 1px solid var(--sl-color-neutral-300);
       border-radius: var(--sl-border-radius-medium);
-      font-size: 0.9rem;
+      font-size: 16px;
       box-sizing: border-box;
+      background: var(--sl-input-background-color);
+      color: var(--sl-color-neutral-900);
     }
     @media (max-width: 480px) {
       .meal-review-item-row {
@@ -279,13 +306,19 @@
       padding: 0.45rem 0.75rem;
       border: 1px solid var(--sl-color-neutral-300);
       border-radius: var(--sl-border-radius-medium);
-      font-size: 0.95rem;
+      font-size: 16px;
+      background: var(--sl-input-background-color);
+      color: var(--sl-color-neutral-900);
     }
     @media (max-width: 640px) {
       .weigh-in-form {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 0.75rem;
+      }
+      .weigh-in-date-field {
+        grid-column: 1 / -1;
+        width: 100%;
       }
       .weigh-in-save-btn {
         grid-column: 1 / -1;

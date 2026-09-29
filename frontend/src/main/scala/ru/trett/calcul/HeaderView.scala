@@ -40,6 +40,7 @@ object HeaderView:
                 slButton(
                   slSize    := "small",
                   slVariant := "neutral",
+                  title     := "Previous day",
                   slIcon(slName := "chevron-left"),
                   onClick --> (_ => AppState.setPreviousDay())
                 ),
@@ -54,6 +55,7 @@ object HeaderView:
                 slButton(
                   slSize    := "small",
                   slVariant := "neutral",
+                  title     := "Next day",
                   slIcon(slName := "chevron-right"),
                   onClick --> (_ => AppState.setNextDay())
                 ),
@@ -102,6 +104,7 @@ object HeaderView:
         slButton(
           slSize    := "small",
           slVariant := "neutral",
+          title     := "Toggle theme",
           child <-- AppState.theme.signal.map { t =>
             if t == "dark" then slIcon(slName := "sun") else slIcon(slName := "moon")
           },
@@ -125,6 +128,7 @@ object HeaderView:
               slButton(
                 slSize    := "small",
                 slVariant := "neutral",
+                title     := "Settings",
                 slIcon(slName := "gear", slSlot := "prefix"),
                 span(cls      := "header-btn-text", "Settings"),
                 onClick --> (_ => AppState.isSettingsOpen.set(true))
@@ -132,6 +136,7 @@ object HeaderView:
               slButton(
                 slSize    := "small",
                 slVariant := "neutral",
+                title     := "Sign Out",
                 slIcon(slName := "box-arrow-right", slSlot := "prefix"),
                 span(cls      := "header-btn-text", "Sign Out"),
                 onClick --> { _ =>

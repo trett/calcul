@@ -61,7 +61,7 @@ object WeightView:
 
           // Date input
           div(
-            cls := "weigh-in-field",
+            cls := "weigh-in-field weigh-in-date-field",
             label(cls := "weigh-in-label", "Date"),
             input(
               tpe := "date",
