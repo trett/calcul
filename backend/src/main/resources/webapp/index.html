@@ -78,6 +78,26 @@
       cursor: pointer;
       order: 1;
     }
+    .header-brand-name {
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: var(--sl-color-neutral-900);
+    }
+    .header-brand-badge {
+      background-color: var(--sl-color-primary-50);
+      color: var(--sl-color-primary-700);
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.15rem 0.45rem;
+      border-radius: 9999px;
+      border: 1px solid var(--sl-color-primary-200);
+    }
+    @media (max-width: 640px) {
+      .header-brand-badge {
+        display: none;
+      }
+    }
 
     .header-actions {
       display: flex;
@@ -102,34 +122,12 @@
     }
     @media (min-width: 768px) {
       .header-nav {
+        flex: 1;
         flex-direction: row;
+        justify-content: center;
         width: auto;
         order: 2;
         gap: 1rem;
-      }
-    }
-
-    .header-user-row {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .header-user-name {
-      font-size: 0.9rem;
-      font-weight: 500;
-      color: var(--sl-color-neutral-800);
-      max-width: 120px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    @media (max-width: 640px) {
-      .header-user-name {
-        display: none;
-      }
-      .header-btn-text {
-        display: none;
       }
     }
 
@@ -146,30 +144,62 @@
         width: auto;
       }
     }
-    .date-picker-input {
-      padding: 0.25rem 0.5rem;
+
+    /* Date pill: the native date input is overlaid invisibly so tapping
+       the pill opens the OS date picker without a second visible input. */
+    .date-pill {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      min-height: 32px;
+      padding: 0.35rem 0.75rem;
       border: 1px solid var(--sl-color-neutral-300);
       border-radius: var(--sl-border-radius-medium);
-      font-size: 16px;
-      background: var(--sl-input-background-color);
+      font-size: 0.875rem;
+      font-weight: 600;
       color: var(--sl-color-neutral-900);
-      max-width: 130px;
-      min-width: 0;
+      background: var(--sl-input-background-color);
+      white-space: nowrap;
+      cursor: pointer;
+    }
+    .date-pill sl-icon {
+      font-size: 1rem;
+      color: var(--sl-color-neutral-500);
+    }
+    .date-picker-input {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      border: none;
+      padding: 0;
+      cursor: pointer;
     }
 
-    .header-tabs {
+    /* Tab bar inside the content area (moved out of the header) */
+    .tab-bar {
       width: 100%;
       display: flex;
+      margin-bottom: 1.25rem;
     }
-    .header-tabs sl-button {
+    .tab-bar sl-button-group {
+      flex: 1;
+      width: 100%;
+    }
+    .tab-bar sl-button {
       flex: 1;
     }
+    .tab-bar sl-icon {
+      margin-right: 0.35rem;
+    }
     @media (min-width: 768px) {
-      .header-tabs {
+      .tab-bar sl-button-group {
+        flex: none;
         width: auto;
-        display: inline-flex;
       }
-      .header-tabs sl-button {
+      .tab-bar sl-button {
         flex: none;
       }
     }

@@ -13,6 +13,7 @@ object Main:
 
       Option(dom.document.getElementById("app")).foreach { root =>
         val content = div(
+          TabBarView(),
           child <-- AppState.activeTab.signal.map {
             case "dashboard" =>
               DashboardView()
