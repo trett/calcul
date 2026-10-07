@@ -23,6 +23,9 @@ object ShoelaceDSL:
   val slSpinner: HtmlTag[dom.HTMLElement]          = new HtmlTag[dom.HTMLElement]("sl-spinner", void = false)
   val slDivider: HtmlTag[dom.HTMLElement]          = new HtmlTag[dom.HTMLElement]("sl-divider", void = false)
   val slAlert: HtmlTag[dom.HTMLElement]            = new HtmlTag[dom.HTMLElement]("sl-alert", void = false)
+  val slDropdown: HtmlTag[dom.HTMLElement]         = new HtmlTag[dom.HTMLElement]("sl-dropdown", void = false)
+  val slMenu: HtmlTag[dom.HTMLElement]             = new HtmlTag[dom.HTMLElement]("sl-menu", void = false)
+  val slMenuItem: HtmlTag[dom.HTMLElement]         = new HtmlTag[dom.HTMLElement]("sl-menu-item", void = false)
 
   // Common Shoelace Attributes
   val slVariant: HtmlAttr[String]     = new HtmlAttr[String]("variant", StringAsIsCodec)
@@ -30,6 +33,7 @@ object ShoelaceDSL:
   val slName: HtmlAttr[String]        = new HtmlAttr[String]("name", StringAsIsCodec)
   val slLabel: HtmlAttr[String]       = new HtmlAttr[String]("label", StringAsIsCodec)
   val slPlaceholder: HtmlAttr[String] = new HtmlAttr[String]("placeholder", StringAsIsCodec)
+  val slPlacement: HtmlAttr[String]   = new HtmlAttr[String]("placement", StringAsIsCodec)
   val slHelpText: HtmlAttr[String]    = new HtmlAttr[String]("help-text", StringAsIsCodec)
   val slImage: HtmlAttr[String]       = new HtmlAttr[String]("image", StringAsIsCodec)
   val slInitials: HtmlAttr[String]    = new HtmlAttr[String]("initials", StringAsIsCodec)
@@ -49,3 +53,5 @@ object ShoelaceDSL:
   // Common Shoelace Event Props
   val onSlRequestClose: EventProp[dom.Event] =
     new EventProp[dom.Event]("sl-request-close")
+  val onSlSelect: EventProp[dom.Event] =
+    new EventProp[dom.Event]("sl-select")

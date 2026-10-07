@@ -64,16 +64,19 @@ object DashboardView:
 
           // Key Metrics Grid
           div(
-            styleAttr := "display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; text-align: center;",
+            cls := "metrics-grid",
 
             // Consumed
             div(
+              cls := "metric-card",
               styleAttr := "background: var(--sl-color-neutral-100); padding: 0.75rem; border-radius: var(--sl-border-radius-medium);",
               div(
+                cls := "metric-title",
                 styleAttr := "font-size: 0.8rem; color: var(--sl-color-neutral-600); text-transform: uppercase; font-weight: 600;",
                 "Consumed"
               ),
               div(
+                cls       := "metric-value",
                 styleAttr := "font-size: 1.5rem; font-weight: 700; color: var(--sl-color-neutral-900);",
                 child.text <-- AppState.dailySummary.signal.map {
                   case Some(s) => s"${s.totalConsumed}"
@@ -88,12 +91,15 @@ object DashboardView:
 
             // Target
             div(
+              cls := "metric-card",
               styleAttr := "background: var(--sl-color-neutral-100); padding: 0.75rem; border-radius: var(--sl-border-radius-medium);",
               div(
+                cls := "metric-title",
                 styleAttr := "font-size: 0.8rem; color: var(--sl-color-neutral-600); text-transform: uppercase; font-weight: 600;",
                 "Daily Target"
               ),
               div(
+                cls       := "metric-value",
                 styleAttr := "font-size: 1.5rem; font-weight: 700; color: var(--sl-color-neutral-900);",
                 child.text <-- AppState.dailySummary.signal.map {
                   case Some(s) => s"${s.calorieTarget}"
@@ -108,12 +114,15 @@ object DashboardView:
 
             // Remaining / Status
             div(
+              cls := "metric-card",
               styleAttr := "background: var(--sl-color-neutral-100); padding: 0.75rem; border-radius: var(--sl-border-radius-medium);",
               div(
+                cls := "metric-title",
                 styleAttr := "font-size: 0.8rem; color: var(--sl-color-neutral-600); text-transform: uppercase; font-weight: 600;",
                 "Remaining"
               ),
               div(
+                cls       := "metric-value",
                 styleAttr := "font-size: 1.5rem; font-weight: 700;",
                 child <-- AppState.dailySummary.signal.map {
                   case Some(s) if s.remainingCalories >= 0 =>
@@ -211,12 +220,12 @@ object DashboardView:
                   // Meal Card Header
                   div(
                     slSlot := "header",
-                    styleAttr := "display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;",
+                    cls    := "meal-card-header",
                     div(
-                      styleAttr := "display: flex; align-items: center; gap: 0.5rem;",
-                      span(styleAttr := "font-weight: 600; font-size: 1rem;", meal.description),
+                      cls := "meal-card-title-group",
+                      span(cls := "meal-card-description", meal.description),
                       span(
-                        styleAttr := "font-size: 0.8rem; color: var(--sl-color-neutral-500);",
+                        cls := "meal-card-time",
                         s"• ${DateUtils.formatTime(meal.loggedAt)}"
                       )
                     ),
@@ -279,7 +288,8 @@ object DashboardView:
       slDialog(
         slOpen <-- targetModalOpen.signal,
         slLabel   := "Set Daily Calorie Target",
-        styleAttr := "--width: 400px;",
+        styleAttr := "--width: min(400px, calc(100vw - 2rem));",
+        onSlRequestClose --> (_ => targetModalOpen.set(false)),
         div(
           styleAttr := "display: flex; flex-direction: column; gap: 1rem;",
           p(
@@ -289,7 +299,7 @@ object DashboardView:
           input(
             tpe         := "number",
             placeholder := "2000",
-            styleAttr := "box-sizing: border-box; width: 100%; padding: 0.5rem 0.75rem; border: 1px solid var(--sl-color-neutral-300); border-radius: var(--sl-border-radius-medium); font-size: 1rem;",
+            styleAttr := "box-sizing: border-box; width: 100%; padding: 0.5rem 0.75rem; border: 1px solid var(--sl-color-neutral-300); border-radius: var(--sl-border-radius-medium); font-size: 16px; background: var(--sl-input-background-color); color: var(--sl-color-neutral-900);",
             controlled(
               value <-- targetInput.signal,
               onInput.mapToValue --> targetInput.writer
