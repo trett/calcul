@@ -85,7 +85,7 @@ lazy val backend = (project in file("backend"))
     dockerPermissionStrategy := DockerPermissionStrategy.None,
     dockerBaseImage := {
       if (sys.env.get("NATIVE_IMAGE").contains("true")) "debian:12-slim"
-      else "eclipse-temurin:21-jre-jammy"
+      else "eclipse-temurin:25-jre-jammy"
     },
     dockerApiVersion := Some(DockerApiVersion(1, 40)),
     dockerRepository := sys.env.get("REGISTRY"),
